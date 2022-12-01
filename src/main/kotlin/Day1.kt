@@ -1,8 +1,6 @@
 class Day1(input: String) {
 
-    private val calories = input
-        .split(System.lineSeparator().repeat(2))
-        .map { elf -> elf.split(System.lineSeparator()).sumOf { food -> food.toInt() } }
+    private val calories = groupLines(input).map { elf -> elf.sumOf { food -> food.toInt() } }
 
     fun part1() = calories.max()
 
