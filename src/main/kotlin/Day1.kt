@@ -1,6 +1,10 @@
-class Day1(input: List<String>) {
-    
-    fun part1() = 1
+class Day1(input: String) {
 
-    fun part2() = 2
+    private val calories = input
+        .split(System.lineSeparator().repeat(2))
+        .map { elf -> elf.split(System.lineSeparator()).sumOf { food -> food.toInt() } }
+
+    fun part1() = calories.max()
+
+    fun part2() = calories.sortedDescending().take(3).sum()
 }
