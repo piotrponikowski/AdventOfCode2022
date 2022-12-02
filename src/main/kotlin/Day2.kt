@@ -3,7 +3,7 @@ class Day2(input: List<String>) {
     private val games = input.map { it.split(" ").map { hand -> Hand.valueOf(hand) } }
 
     fun part1() = games.map { (oppHand, myHand) -> oppHand.shape to myHand.shape }
-        .sumOf { (oppShape, myShape) -> myShape.play(oppShape).score + myShape.score }
+        .sumOf { (oppShape, myShape) -> myShape.findResult(oppShape).score + myShape.score }
 
     fun part2() = games.map { (oppHand, myHand) -> oppHand.shape to myHand.result!! }
         .sumOf { (oppShape, myResult) -> myResult.findShape(oppShape).score + myResult.score }
@@ -28,7 +28,7 @@ class Day2(input: List<String>) {
             SCISSORS -> ROCK
         }
 
-        fun play(other: Shape) = when (other) {
+        fun findResult(oppShape: Shape) = when (oppShape) {
             getWinningShape() -> Result.WIN
             getLosingShape() -> Result.LOSS
             else -> Result.DRAW
@@ -38,10 +38,10 @@ class Day2(input: List<String>) {
     enum class Result(val score: Int) {
         WIN(6), DRAW(3), LOSS(0);
 
-        fun findShape(shape: Shape) = when (this) {
-            WIN -> shape.getLosingShape()
-            LOSS -> shape.getWinningShape()
-            DRAW -> shape
+        fun findShape(oppShape: Shape) = when (this) {
+            WIN -> oppShape.getLosingShape()
+            LOSS -> oppShape.getWinningShape()
+            DRAW -> oppShape
         }
     }
 }
