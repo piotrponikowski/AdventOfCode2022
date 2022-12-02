@@ -1,87 +1,47 @@
 class Day2(input: List<String>) {
 
-    val pairs = input.map { it.split(" ") }
+    private val games = input.map { it.split(" ").map { hand -> Hand.valueOf(hand) } }
 
-    fun score(opp: String, me: String): Int {
-        if (opp == "C" && me == "X" || opp == "A" && me == "Y" || opp == "B" && me == "Z") {
-            return 6
-        } else if (opp == "A" && me == "X" || opp == "B" && me == "Y" || opp == "C" && me == "Z") {
-            return 3
-        } else {
-            return 0
+    fun part1() = games.map { (oppHand, myHand) -> oppHand.shape to myHand.shape }
+        .sumOf { (oppShape, myShape) -> myShape.play(oppShape).score + myShape.score }
+
+    fun part2() = games.map { (oppHand, myHand) -> oppHand.shape to myHand.result!! }
+        .sumOf { (oppShape, myResult) -> myResult.findShape(oppShape).score + myResult.score }
+
+    enum class Hand(val shape: Shape, val result: Result?) {
+        A(Shape.ROCK, null), B(Shape.PAPER, null), C(Shape.SCISSORS, null),
+        X(Shape.ROCK, Result.LOSS), Y(Shape.PAPER, Result.DRAW), Z(Shape.SCISSORS, Result.WIN)
+    }
+
+    enum class Shape(val score: Int) {
+        ROCK(1), PAPER(2), SCISSORS(3);
+
+        fun getWinningShape() = when (this) {
+            ROCK -> SCISSORS
+            PAPER -> ROCK
+            SCISSORS -> PAPER
+        }
+
+        fun getLosingShape() = when (this) {
+            ROCK -> PAPER
+            PAPER -> SCISSORS
+            SCISSORS -> ROCK
+        }
+
+        fun play(other: Shape) = when (other) {
+            getWinningShape() -> Result.WIN
+            getLosingShape() -> Result.LOSS
+            else -> Result.DRAW
         }
     }
 
-    fun score2(me: String): Int {
-        if (me == "X") {
-            return 0
-        } else if (me == "Y") {
-            return 3
-        } else {
-            return 6
+    enum class Result(val score: Int) {
+        WIN(6), DRAW(3), LOSS(0);
+
+        fun findShape(shape: Shape) = when (this) {
+            WIN -> shape.getLosingShape()
+            LOSS -> shape.getWinningShape()
+            DRAW -> shape
         }
     }
-    
-    fun type1(me: String): Int {
-        if(me == "X") {
-            return 1
-        } else if(me == "Y") {
-            return 2
-        } else {
-            return 3;
-        }
-    }
-
-    fun type2(me: String): Int {
-        if(me == "A") {
-            return 1
-        } else if(me == "B") {
-            return 2
-        } else {
-            return 3;
-        }
-    }
-    
-    fun winningType(opp: String, me:String): String {
-        if(opp == "A" && me == "Z") {
-            return "B"
-        } else if(opp == "B" && me == "Z") {
-            return "C"
-        } else if(opp == "C" && me == "Z") {
-            return "A"
-        }
-
-        if(opp == "A" && me == "Y") {
-            return "A"
-        } else if(opp == "B" && me == "Y") {
-            return "B"
-        } else if(opp == "C" && me == "Y") {
-            return "C"
-        }
-
-        if(opp == "A" && me == "X") {
-            return "C"
-        } else if(opp == "B" && me == "X") {
-            return "A"
-        } else if(opp == "C" && me == "X") {
-            return "B"
-        }
-        
-        throw RuntimeException("Unknown $opp $me")
-    }
-
-    fun part1() = pairs.map { (opp, me) -> score(opp, me) + type1(me) }.sum()
-
-    fun part2() = pairs.map { (opp, me) ->score2(me) + type2(winningType(opp, me)) }.sum()
-}
-
-
-fun main() {
-
-    val input = readLines("day2.txt")
-//    val input = readLines("day2.txt", true)
-
-
-    val result = Day2(input).part2()
-    println(result)
 }
