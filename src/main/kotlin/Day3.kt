@@ -1,6 +1,6 @@
 class Day3(private val input: List<String>) {
 
-    fun part1() = solve(input.map { elements -> elements.chunked(elements.length / 2) })
+    fun part1() = solve(input.map { items -> items.chunked(items.length / 2) })
 
     fun part2() = solve(input.chunked(3))
 
