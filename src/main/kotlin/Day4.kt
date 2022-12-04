@@ -1,26 +1,14 @@
 class Day4(input: List<String>) {
 
-    val regex = Regex("""^(\d+)-(\d+),(\d+)-(\d+)$""")
-    
-    val elfs = input.map { regex.matchEntire(it)!!.destructured }
-        .map { (x1, x2, y1, y2) -> x1.toInt()..x2.toInt() to y1.toInt()..y2.toInt() }
-        .map { (g1, g2) -> g1.toSet() to g2.toSet() }
-    
-    
-    fun part1() = elfs.map { (p1, p2) -> if (p1.containsAll(p2) || p2.containsAll(p1)) 1 else 0 }.sum()
+    private val pattern = Regex("""^(\d+)-(\d+),(\d+)-(\d+)$""")
 
-    fun part2() = elfs.map { (p1, p2) -> if (p1.intersect(p2).isNotEmpty()) 1 else 0 }.sum()
-    
-}
+    private val pairs = input.map { pattern.matchEntire(it)!!.destructured }
+        .map { (from1, to1, from2, to2) -> from1.toInt()..to1.toInt() to from2.toInt()..to2.toInt() }
+        .map { (range1, range2) -> range1.toSet() to range2.toSet() }
 
 
+    fun part1() = pairs.count { (range1, range2) -> range1.containsAll(range2) || range2.containsAll(range1) }
 
-fun main() {
+    fun part2() = pairs.count { (range1, range2) -> range1.intersect(range2).isNotEmpty() }
 
-    val input = readLines("day4.txt")
-//    val input = readLines("day4.txt", true);
-    
-    val result = Day4(input).part2()
-    println(result)
-    
 }
