@@ -1,7 +1,7 @@
 class Day4(input: List<String>) {
 
     private val pairs = input
-        .map { line -> line.split(",").map { section -> section.toInt() } }
+        .map { line -> line.split(",", "-").map { section -> section.toInt() } }
         .map { (from1, to1, from2, to2) -> from1..to1 to from2..to2 }
         .map { (range1, range2) -> range1.toSet() to range2.toSet() }
 
