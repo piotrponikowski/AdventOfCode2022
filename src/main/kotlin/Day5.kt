@@ -1,62 +1,38 @@
 class Day5(input: String) {
 
-    val pattern = Regex("""^move (\d+) from (\d+) to (\d+)$""")
+    private val pattern = Regex("""^move (\d+) from (\d+) to (\d+)$""")
 
+    private val groupedInput = groupLines(input)
+    private val stacksInput = groupedInput.first()
+    private val instructionsInput = groupedInput.last()
 
-    val max = 8
-    val parts = input.split(System.lineSeparator().repeat(2))
+    private val stackCount = stacksInput.last().length / 4
 
-    val start = parts[0].split(System.lineSeparator())
-    val instructions = parts[1].split(System.lineSeparator())
+    private val stacks = (0..stackCount)
+        .map { stackIndex -> stacksInput.map { stack -> stack[stackIndex * 4 + 1] }.filter { tile -> tile.isLetter() } }
 
+    private val instructions = instructionsInput
+        .map { line -> pattern.matchEntire(line)!!.destructured }
+        .map { (count, from, to) -> Instruction(count.toInt(), from.toInt() - 1, to.toInt() - 1) }
 
-    val instructions2 = instructions.map { pattern.matchEntire(it)!!.destructured }
+    private fun solve(reversed: Boolean) = instructions
+        .fold(stacks) { state, instruction -> executeInstruction(state, instruction, reversed) }
+        .map { stack -> stack.first() }
+        .joinToString("")
 
-    fun solve(max: Int): String {
-
-        val port = (0..max).map { stackIndex ->
-            start.dropLast(1).map { line -> line[stackIndex * 4 + 1] }.filter { it != ' ' }
+    private fun executeInstruction(stacks: List<List<Char>>, instruction: Instruction, reversed: Boolean) =
+        stacks.mapIndexed { index, stack ->
+            when (index) {
+                instruction.from -> stack.drop(instruction.count)
+                instruction.to -> stacks[instruction.from].take(instruction.count)
+                    .let { crates -> if (reversed) crates.reversed() else crates } + stack
+                else -> stack
+            }
         }
 
-        return instructions2
-            .fold(port) { state, ins ->
-                val (a, b, c) = ins
+    fun part1() = solve(true)
 
-                val count = a.toInt()
-                val from = b.toInt() - 1
-                val to = c.toInt() - 1
+    fun part2() = solve(false)
 
-//            println(state)
-//            println("$count, $from, $to")
-
-
-                val step = state.mapIndexed { index, stack ->
-                    when {
-                        index == from -> stack.drop(count)
-                        index == to -> state[from].take(count) + stack
-                        else -> stack
-                    }
-                }
-//            println(step)
-//            println()
-
-
-                step
-            }.map { it.first().toString() }
-            .joinToString("")
-    }
-
-    fun part1() = solve(2)
-    
-    fun part2() = solve(8)
-}
-
-fun main() {
-
-    val input = readText("day5.txt")
-//    val input = readText("day5.txt", true)
-
-    val day = Day5(input)
-    val r = Day5(input).part1()
-    println(r)
+    data class Instruction(val count: Int, val from: Int, val to: Int)
 }
