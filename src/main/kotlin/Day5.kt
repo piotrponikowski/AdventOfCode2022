@@ -20,11 +20,11 @@ class Day5(input: String) {
         .map { stack -> stack.first() }
         .joinToString("")
 
-    private fun executeInstruction(stacks: List<List<Char>>, instruction: Instruction, reversed: Boolean) =
-        stacks.mapIndexed { index, stack ->
+    private fun executeInstruction(state: List<List<Char>>, instruction: Instruction, reversed: Boolean) =
+        state.mapIndexed { index, stack ->
             when (index) {
                 instruction.from -> stack.drop(instruction.count)
-                instruction.to -> stacks[instruction.from].take(instruction.count)
+                instruction.to -> state[instruction.from].take(instruction.count)
                     .let { crates -> if (reversed) crates.reversed() else crates } + stack
                 else -> stack
             }
