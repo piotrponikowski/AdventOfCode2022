@@ -2,9 +2,8 @@ class Day6(val input: String) {
 
     private fun solve(size: Int) = input
         .windowed(size)
-        .mapIndexed { index, letters -> index to letters }
-        .first { (_, letters) -> letters.toSet().size == size }
-        .let { (index, _) -> index + size }
+        .indexOfFirst { letters -> letters.toSet().size == size }
+        .let { index -> index + size }
 
     fun part1() = solve(4)
 
