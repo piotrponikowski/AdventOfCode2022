@@ -6,49 +6,40 @@ class Day7(input: String) {
         .map { content -> content.split(System.lineSeparator()) }
         .map { content -> content.first() to content.drop(1) }
 
-    fun part1() = findAllSubDirectories(root)
+    private val root = solveRoot()
+    private val totalSize = root.size()
+    
+    fun part1() = root.findAllSubDirs()
         .map { directory -> directory.size() }
         .filter { size -> size < 100000 }
         .sum()
 
-    fun part2() = findAllSubDirectories(root)
+    fun part2() = root.findAllSubDirs()
         .map { directory -> directory.size() }
-        .filter { size -> size >= 30000000 - (70000000 - root.size()) }
+        .filter { size -> size >= 30000000 - (70000000 - totalSize) }
         .min()
+    
+    private fun solveRoot(): Directory {
+        val root = Directory("/", null, mutableListOf())
 
-    private val root = Directory("/", null, mutableListOf())
-
-    init {
         commands.fold(root) { current, (commandLine, resultLines) ->
             when {
                 commandLine == "cd /" -> root
                 commandLine == "cd .." -> current.parent!!
-                commandLine.startsWith("cd") -> findChild(current, commandLine.split(" ").last())!!
+                commandLine.startsWith("cd") -> current.findDir(commandLine.split(" ").last())!!
                 else -> current.apply { children += parseChildren(current, resultLines) }
             }
         }
+
+        return root
     }
-
-    private fun findChild(directory: Directory, name: String) = directory.children
-        .filterIsInstance<Directory>()
-        .find { it.name == name }
-
+    
     private fun parseChildren(parent: Directory, resultLines: List<String>) = resultLines
         .map { line -> line.split(" ") }
         .map { (type, name) ->
             when (type == "dir") {
                 true -> Directory(name, parent, mutableListOf())
                 false -> File(name, type.toInt())
-            }
-        }
-
-    private fun findAllSubDirectories(directory: Directory): List<Directory> = directory.children
-        .filterIsInstance<Directory>()
-        .let { subDirectories ->
-            subDirectories + subDirectories.flatMap { subDirectory ->
-                findAllSubDirectories(
-                    subDirectory
-                )
             }
         }
 
@@ -65,5 +56,12 @@ class Day7(input: String) {
     data class Directory(val name: String, val parent: Directory?, val children: MutableList<Element>) : Element {
         override fun name() = name
         override fun size() = children.sumOf { child -> child.size() }
+
+        fun findAllSubDirs(current: Directory = this): List<Directory> = current.findAllDirs()
+            .let { dirs -> dirs + dirs.flatMap { dir -> findAllSubDirs(dir) } }
+
+        fun findDir(name: String) = findAllDirs().find { it.name == name }
+
+        private fun findAllDirs() = children.filterIsInstance<Directory>()
     }
 }
