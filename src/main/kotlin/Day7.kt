@@ -2,7 +2,7 @@ class Day7(input: String) {
 
     val commands = input.split("$").map { it.trim() }.filter { it.isNotBlank() }
     val root = Dir("/")
-    
+
     val allDirs = mutableListOf(root)
 
     fun solve() {
@@ -27,12 +27,12 @@ class Day7(input: String) {
                 }
 
                 current = nextDir
-            } else if(command.startsWith("ls")) {
+            } else if (command.startsWith("ls")) {
                 val list = command.split(System.lineSeparator())
-                
+
                 list.drop(1).forEach { element ->
-                    if(element.startsWith("dir")) {
-                        
+                    if (element.startsWith("dir")) {
+
                     } else {
                         val (size, name) = element.split(" ")
                         current.files += File(name, size.toInt())
@@ -43,28 +43,33 @@ class Day7(input: String) {
     }
 
 
-    fun size(dir: Dir) : Int {
+    fun size(dir: Dir): Int {
         return dir.files.sumOf { it.size } + dir.dirs.sumOf { d -> size(d) }
     }
-    
-  
-    
-    fun part1() = allDirs.map { dir -> size(dir) }
-        .filter { it < 100000 }
-        .sum()
-      
 
-    fun part2():Int{
+
+    fun part1(): Int {
+        solve()
+
+        return allDirs.map { dir -> size(dir) }
+            .filter { it < 100000 }
+            .sum()
+    }
+
+
+    fun part2(): Int {
+        solve()
+
         val rootSize = size(root)
         val unusedSpace = 70000000 - rootSize
         val needToDelete = 30000000 - unusedSpace
-        
+
         return allDirs.map { dir -> dir.name to size(dir) }
             .filter { (name, total) -> total >= needToDelete }
             .sortedBy { (name, total) -> total }
             .first().second
-        
-    } 
+
+    }
 
 
     data class Dir(
@@ -77,7 +82,7 @@ class Day7(input: String) {
             return "$name, $dirs $files"
         }
     }
-    
+
 
     data class File(val name: String, val size: Int)
 }
