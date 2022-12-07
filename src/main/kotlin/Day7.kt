@@ -8,7 +8,7 @@ class Day7(input: String) {
 
     private val root = solveRoot()
     private val totalSize = root.size()
-    
+
     fun part1() = root.findAllSubDirs()
         .map { directory -> directory.size() }
         .filter { size -> size < 100000 }
@@ -18,10 +18,8 @@ class Day7(input: String) {
         .map { directory -> directory.size() }
         .filter { size -> size >= 30000000 - (70000000 - totalSize) }
         .min()
-    
-    private fun solveRoot(): Directory {
-        val root = Directory("/", null, mutableListOf())
 
+    private fun solveRoot(): Directory = Directory("/", null, mutableListOf()).also { root ->
         commands.fold(root) { current, (commandLine, resultLines) ->
             when {
                 commandLine == "cd /" -> root
@@ -30,10 +28,8 @@ class Day7(input: String) {
                 else -> current.apply { children += parseChildren(current, resultLines) }
             }
         }
-
-        return root
     }
-    
+
     private fun parseChildren(parent: Directory, resultLines: List<String>) = resultLines
         .map { line -> line.split(" ") }
         .map { (type, name) ->
