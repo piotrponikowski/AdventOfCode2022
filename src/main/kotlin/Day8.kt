@@ -1,18 +1,18 @@
 class Day8(input: List<String>) {
 
     private val trees = input.map { line -> line.map { value -> value.toString().toInt() } }
-        .flatMapIndexed { y, line -> line.mapIndexed { x, risk -> Point(x, y) to risk } }.toMap()
+        .flatMapIndexed { y, line -> line.mapIndexed { x, size -> Point(x, y) to size } }.toMap()
 
     fun part1() = trees
-        .filter { (treeLocation, treeSize) ->
-            findTreeLines(treeLocation)
-                .any { line -> line.all { otherLocation -> trees[otherLocation]!! < treeSize } }
+        .filter { (location, size) ->
+            findTreeLines(location)
+                .any { line -> line.all { otherLocation -> trees[otherLocation]!! < size } }
         }.count()
 
     fun part2() = trees
-        .map { (treeLocation, treeSize) ->
-            findTreeLines(treeLocation)
-                .map { line -> countVisible(line, treeSize) }
+        .map { (location, size) ->
+            findTreeLines(location)
+                .map { line -> countVisible(line, size) }
                 .reduce { score, distance -> score * distance }
         }.max()
 
