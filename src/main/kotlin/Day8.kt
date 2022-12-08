@@ -61,9 +61,9 @@ class Day8(input: List<String>) {
     }
 
 
-    fun part1() = 1
+    fun part1() = solve().count { it.second }
 
-    fun part2() = 2
+    fun part2() = solve2().map { it.second }.max()
 
     private val directions = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
 
