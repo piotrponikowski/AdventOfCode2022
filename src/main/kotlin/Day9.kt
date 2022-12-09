@@ -10,20 +10,20 @@ class Day9(input: List<String>) {
 
     fun part2() = solve(10)
 
-    fun solve(size: Int) = instructions
-        .fold(initRope(size) to initVisited()) { (rope, visited), (direction, steps) ->
-            executeInstruction(direction, steps, rope, visited)
-        }.let { (_, visited) -> visited.count() }
-
-    private fun initRope(size: Int) = (0 until size).map { Point(0, 0) }
-
-    private fun initVisited() = setOf<Point>()
-
-    private fun executeInstruction(direction: Direction, steps: Int, rope: List<Point>, visited: Set<Point>) =
-        (0 until steps).fold(rope to visited) { (ropeStep, visitedStep), _ ->
-            moveTail(ropeStep, direction)
-                .let { newRope -> newRope to visitedStep + newRope.last() }
+    fun solve(size: Int) :Int {
+        var rope = (0 until size).map { Point(0, 0) }
+        val visited = mutableSetOf<Point>()
+        
+        instructions.forEach { (direction, steps) ->
+            repeat(steps) {
+                rope = moveTail(rope, direction)
+                visited += rope.last()
+            }
         }
+        
+        return visited.count()
+    }
+
 
     private fun moveTail(rope: List<Point>, direction: Direction, newRope: List<Point> = listOf()): List<Point> {
         return if (newRope.isEmpty()) {
