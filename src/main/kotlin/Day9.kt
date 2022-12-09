@@ -6,19 +6,18 @@ class Day9(input: List<String>) {
 
     var visited = mutableSetOf<Point>()
 
-    fun solve() {
+    fun solve(size:Int) :Int {
 //        var head = Point(0, 0)
-        var rope = (0..10).map { Point(0, 0) }.toMutableList()
+        var rope = (0 until size).map { Point(0, 0) }.toMutableList()
 
         instructions.forEach { (dir, steps) ->
-            println("$dir $steps")
             
             (1..steps).forEach { step ->
                 val head = rope.first() + dir
 
                 rope[0] = head
 
-                (0..9).forEach { index -> 
+                (0 until size-1).forEach { index -> 
                     val h = rope[index]
                     val t = rope[index+1]
                     
@@ -26,18 +25,12 @@ class Day9(input: List<String>) {
 
                 }
 
-                visited += rope.takeLast(2).first()
+                visited += rope.last()
    
             }
-
-            println(printPoints(visited.toSet()))
         }
-
-
-      
-
-        println(visited.size)
-
+        
+        return visited.size
 
     }
 
@@ -105,9 +98,9 @@ class Day9(input: List<String>) {
         return b
     }
 
-    fun part1() = 1
+    fun part1() = solve(2)
 
-    fun part2() = 2
+    fun part2() = solve(10)
 
 
     private fun printPoints(state: Set<Point>): String {
@@ -138,7 +131,7 @@ fun main() {
     val input = readLines("day9.txt")
 //    val input = readLines("day9.txt", true)
 
-    val result = Day9(input).solve()
+    val result = Day9(input).part1()
     println(result)
 
 }
