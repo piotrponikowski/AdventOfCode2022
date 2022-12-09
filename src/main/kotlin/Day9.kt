@@ -3,71 +3,106 @@ class Day9(input: List<String>) {
     val instructions = input.map { it.split(" ") }
         .map { (a, b) -> Direction.valueOf(a) to b.toInt() }
 
-    
+
     var visited = mutableSetOf<Point>()
 
     fun solve() {
-        var head = Point(0, 0)
-        var tail = Point(0, 0)
+//        var head = Point(0, 0)
+        var rope = (0..10).map { Point(0, 0) }.toMutableList()
 
         instructions.forEach { (dir, steps) ->
+            println("$dir $steps")
+            
             (1..steps).forEach { step ->
-                head += dir
+                val head = rope.first() + dir
 
-                if (head.x - tail.x == 2 && head.y == tail.y) {
-                    tail += Direction.R
-                } else if (head.x - tail.x == -2 && head.y == tail.y) {
-                    tail += Direction.L
-                } else if (head.y - tail.y == 2 && head.x == tail.x) {
-                    tail += Direction.D
-                } else if (head.y - tail.y == -2 && head.x == tail.x) {
-                    tail += Direction.U
-                }
-                
-                if(tail + Direction.R + Direction.R + Direction.U == head ){
-                    tail += Direction.R
-                    tail += Direction.U
-                } else if(tail + Direction.R + Direction.R + Direction.D == head ){
-                    tail += Direction.R
-                    tail += Direction.D
+                rope[0] = head
+
+                (0..9).forEach { index -> 
+                    val h = rope[index]
+                    val t = rope[index+1]
+                    
+                    rope[index+1] = adjust(h,t)
+
                 }
 
-                if(tail + Direction.L + Direction.L + Direction.U == head ){
-                    tail += Direction.L
-                    tail += Direction.U
-                } else if(tail + Direction.L + Direction.L + Direction.D == head ){
-                    tail += Direction.L
-                    tail += Direction.D
-                }
-
-                if(tail + Direction.U + Direction.U + Direction.L == head ){
-                    tail += Direction.U
-                    tail += Direction.L
-                } else if(tail + Direction.U + Direction.U + Direction.R == head ){
-                    tail += Direction.U
-                    tail += Direction.R
-                }
-
-                if(tail + Direction.D + Direction.D + Direction.L == head ){
-                    tail += Direction.D
-                    tail += Direction.L
-                } else if(tail + Direction.D + Direction.D + Direction.R == head ){
-                    tail += Direction.D
-                    tail += Direction.R
-                }
-
-                visited += tail
-                
-                println("$dir $step, $head - $tail")
-       
+                visited += rope.takeLast(2).first()
+   
             }
-            println(printPoints(visited))
-            println()
+
+            println(printPoints(visited.toSet()))
         }
-        
+
+
+      
+
         println(visited.size)
 
-    
+
+    }
+
+    fun adjust(head: Point, tail: Point): Point {
+        var b = tail
+
+        if (head.x - tail.x == 2 && head.y == tail.y) {
+            b += Direction.R
+        } else if (head.x - tail.x == -2 && head.y == tail.y) {
+            b += Direction.L
+        } else if (head.y - tail.y == 2 && head.x == tail.x) {
+            b += Direction.D
+        } else if (head.y - tail.y == -2 && head.x == tail.x) {
+            b += Direction.U
+        }
+
+        if (tail + Direction.R + Direction.R + Direction.U == head) {
+            b += Direction.R
+            b += Direction.U
+        } else if (tail + Direction.R + Direction.R + Direction.D == head) {
+            b += Direction.R
+            b += Direction.D
+        }
+
+        if (tail + Direction.L + Direction.L + Direction.U == head) {
+            b += Direction.L
+            b += Direction.U
+        } else if (tail + Direction.L + Direction.L + Direction.D == head) {
+            b += Direction.L
+            b += Direction.D
+        }
+
+        if (tail + Direction.U + Direction.U + Direction.L == head) {
+            b += Direction.U
+            b += Direction.L
+        } else if (tail + Direction.U + Direction.U + Direction.R == head) {
+            b += Direction.U
+            b += Direction.R
+        }
+
+        if (tail + Direction.D + Direction.D + Direction.L == head) {
+            b += Direction.D
+            b += Direction.L
+        } else if (tail + Direction.D + Direction.D + Direction.R == head) {
+            b += Direction.D
+            b += Direction.R
+        }
+
+        if (tail + Direction.R + Direction.R + Direction.U + Direction.U  == head) {
+            b += Direction.R
+            b += Direction.U
+        } else if (tail + Direction.R + Direction.R + Direction.D + Direction.D  == head) {
+            b += Direction.R
+            b += Direction.D
+        }
+
+        if (tail + Direction.L + Direction.L + Direction.U + Direction.U  == head) {
+            b += Direction.L
+            b += Direction.U
+        } else if (tail + Direction.L + Direction.L + Direction.D + Direction.D  == head) {
+            b += Direction.L
+            b += Direction.D
+        }
+        
+        return b
     }
 
     fun part1() = 1
