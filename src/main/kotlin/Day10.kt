@@ -17,16 +17,16 @@ class Day10(input: List<String>) {
     fun part1() = listOf(20, 60, 100, 140, 180, 220)
         .sumOf { cycleIndex -> registerHistory[cycleIndex - 1] * cycleIndex }
 
-    fun part2() = registerHistory.dropLast(1).fold(listOf<Char>()) { picture, value ->
+    fun part2() = registerHistory.dropLast(1).fold(listOf<Char>()) { picture, registerValue ->
         val crtPosition = (picture.size % 40) + 1
-        val spritePosition = (value..value + 2)
+        val spritePosition = (registerValue..registerValue + 2)
 
         when (crtPosition in spritePosition) {
             true -> picture + '#'
             false -> picture + '.'
         }
     }.chunked(40).joinToString(System.lineSeparator()) { chunk -> chunk.joinToString("") }
-    
+
     sealed interface Instruction
 
     object NoopInstruction : Instruction
