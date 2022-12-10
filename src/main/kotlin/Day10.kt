@@ -1,69 +1,35 @@
 class Day10(input: List<String>) {
 
-    val instructions = input
-
-
-    fun solve() :String {
-        val cycles = mutableListOf(1)
-        val picture = mutableListOf<Char>()
-
-        instructions.forEach { instruction ->
-
-//            if (picture.isNotEmpty()) {
-//                println(picture.chunked(40)
-//                    .map { line -> line.joinToString("") }.last()
-//                )
-//            }
-            
-//            if(picture.size > 196) {
-//                println()
-//            }
-
-
-            val repeatTimes = if (instruction == "noop") 1 else 2
-
-            repeat(repeatTimes) {
-                val crtPosition = (picture.size % 40) + 1
-                val spritePosition = (cycles.last()..(cycles.last() + 2))
-
-                if (crtPosition in spritePosition) {
-                    picture += '#'
-                } else {
-                    picture += '.'
-                }
-            }
-
-            if (instruction == "noop") {
-                cycles += cycles.last()
-
-            } else {
-                val add = instruction.split(" ").last().toInt()
-                cycles += cycles.last()
-                cycles += cycles.last() + add
-            }
+    private val instructions = input.map { line ->
+        when (line == "noop") {
+            true -> NoopInstruction
+            else -> AddInstruction(line.split(" ").last().toInt())
         }
-
-//        println(cycles)
-//        println(cycles[20])
-//        println(cycles[60])
-//
-        val c = listOf(20, 60, 100, 140, 180, 220)
-        val r = c.map { a -> cycles[a - 1] * a }.sum()
-        return picture.chunked(40).map { line -> line.joinToString("") }.joinToString(System.lineSeparator())
     }
 
+    private val registerHistory = instructions.fold(listOf(1)) { state, instruction ->
+        when (instruction) {
+            is NoopInstruction -> state + state.last()
+            is AddInstruction -> state + listOf(state.last(), state.last() + instruction.value)
+        }
+    }
 
-    fun part1() = 1
+    fun part1() = listOf(20, 60, 100, 140, 180, 220)
+        .sumOf { cycleIndex -> registerHistory[cycleIndex - 1] * cycleIndex }
 
-    fun part2() = solve()
-}
+    fun part2() = registerHistory.dropLast(1).fold(listOf<Char>()) { picture, value ->
+        val crtPosition = (picture.size % 40) + 1
+        val spritePosition = (value..value + 2)
 
-fun main() {
+        when (crtPosition in spritePosition) {
+            true -> picture + '#'
+            false -> picture + '.'
+        }
+    }.chunked(40).joinToString(System.lineSeparator()) { chunk -> chunk.joinToString("") }
+    
+    sealed interface Instruction
 
-    val input = readLines("day10.txt")
-//    val input = readLines("day10.txt", true)
+    object NoopInstruction : Instruction
 
-    val result = Day10(input).solve()
-    println(result)
-
+    data class AddInstruction(val value: Int) : Instruction
 }
