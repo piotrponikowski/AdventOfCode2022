@@ -15,24 +15,15 @@ class Day11(input: String) {
     val counters = monkeys.map { 0L }.toMutableList()
     val prime = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
 
-    fun parseOperation(line: String): Operation {
-        val operationData = line.replace("Operation: new = ", "").trim().split(" ")
-        val (arg1, operator, arg2) = operationData
+    private fun parseOperation(line: String): Operation {
+        val (_, operator, arg2) = line.replace("Operation: new = ", "").trim().split(" ")
 
-        if (operator == "+") {
-            if (arg2 == "old") {
-                return AddOldOperation
-            } else {
-                return AddOperation(arg2.toLong())
-            }
-        } else if (operator == "*") {
-            if (arg2 == "old") {
-                return MulOldOperation
-            } else {
-                return MulOperation(arg2.toLong())
-            }
-        } else {
-            throw RuntimeException("Unknown operation: $arg1 $operator $arg2")
+        return when {
+            operator == "+" && arg2 == "old" -> AddOldOperation
+            operator == "+" -> AddOperation(arg2.toLong())
+            operator == "*" && arg2 == "old" -> MulOldOperation
+            operator == "*" -> MulOperation(arg2.toLong())
+            else -> throw IllegalArgumentException("Unknown operation: $operator, $arg2")
         }
     }
 
@@ -73,17 +64,26 @@ class Day11(input: String) {
     }
 
     fun part1(): Long {
-        println("prime: ${prime}")
+        //println("prime: ${prime}")
         
-        repeat(10000) {
+        repeat(20) {
             round()
-            println(counters)
+            //println(counters)
         }
 
         return counters.sorted().takeLast(2).reduce { a, b -> a * b }
     }
 
-    fun part2() = 2
+    fun part2(): Long {
+        //println("prime: ${prime}")
+
+        repeat(10000) {
+            round()
+            //println(counters)
+        }
+
+        return counters.sorted().takeLast(2).reduce { a, b -> a * b }
+    }
 
     sealed interface Operation {
         fun calculate(other: Long): Long
