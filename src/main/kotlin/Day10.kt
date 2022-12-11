@@ -3,7 +3,7 @@ class Day10(input: List<String>) {
     private val instructions = input.map { line ->
         when (line == "noop") {
             true -> NoopInstruction
-            else -> AddInstruction(line.split(" ").last().toInt())
+            false -> AddInstruction(line.split(" ").last().toInt())
         }
     }
 
