@@ -21,14 +21,14 @@ class Day11(input: String) {
         .split(",").map { item -> item.trim().toLong() }.toMutableList()
 
     private fun parseOperation(line: String): Operation {
-        val (_, operator, arg2) = line.replace("Operation: new = ", "").trim().split(" ")
+        val (_, type, arg2) = line.replace("Operation: new = ", "").trim().split(" ")
 
         return when {
-            operator == "+" && arg2 == "old" -> AddOldOperation
-            operator == "+" -> AddOperation(arg2.toLong())
-            operator == "*" && arg2 == "old" -> MulOldOperation
-            operator == "*" -> MulOperation(arg2.toLong())
-            else -> throw IllegalArgumentException("Unknown operation: $operator, $arg2")
+            type == "+" && arg2 == "old" -> AddOldOperation
+            type == "+" -> AddOperation(arg2.toLong())
+            type == "*" && arg2 == "old" -> MulOldOperation
+            type == "*" -> MulOperation(arg2.toLong())
+            else -> throw IllegalArgumentException("Unknown operation: $type, $arg2")
         }
     }
 
