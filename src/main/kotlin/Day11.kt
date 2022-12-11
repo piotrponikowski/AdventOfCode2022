@@ -1,7 +1,7 @@
 class Day11(input: String) {
 
-    private val monkeys = input.split(System.lineSeparator().repeat(2))
-        .map { data -> data.split(System.lineSeparator()).drop(1) }
+    private val monkeys = groupLines(input)
+        .map { lines -> lines.drop(1) }
         .map { (itemsLine, operationLine, divisorLine, trueLine, falseLine) ->
             val items = parseItems(itemsLine)
             val operation = parseOperation(operationLine)
@@ -12,7 +12,7 @@ class Day11(input: String) {
         }
 
     private val inspectionCounters = monkeys.map { 0L }.toMutableList()
-    private val prime = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
+    private val totalDivideBy = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
 
     private fun parseItems(line: String) = line.replace("Starting items: ", "")
         .split(",").map { item -> item.trim().toLong() }.toMutableList()
@@ -28,67 +28,42 @@ class Day11(input: String) {
             else -> throw IllegalArgumentException("Unknown operation: $operator, $arg2")
         }
     }
-    
+
     private fun parseDivisor(line: String) = line.split(" ").last().toLong()
 
     private fun parseResult(line: String) = line.split(" ").last().toInt()
 
-    fun round() {
-
-        monkeys.forEachIndexed { index, monkey ->
-            //println("Monkey ${index}:")
+    private fun round(useRelief: Boolean) {
+        monkeys.forEachIndexed { monkeyIndex, monkey ->
             monkey.items.forEach { item ->
-                //println("Monkey inspects an item with a worry level of ${item}.")
-
-                inspectionCounters[index] += 1L
+                inspectionCounters[monkeyIndex]++
 
                 val worryLevel = monkey.operation.calculate(item)
-                //println("Worry level is calculated to ${worryLevel}.")
+                    .let { base ->
+                        when (useRelief) {
+                            true -> base / 3
+                            false -> base % totalDivideBy
+                        }
+                    }
 
-                val worryLevel2 = worryLevel
-                //println("Monkey gets bored with item. Worry level is divided by 3 to ${worryLevel2}.")
-
-                if (worryLevel2 % monkey.divideBy == 0L) {
-                    //println("Current worry level is divisible by ${monkey.divideBy}.")
-                    monkeys[monkey.onTrue].items += (worryLevel2 % prime)
-                    //println("Item with worry level ${worryLevel2} is thrown to monkey ${monkey.onTrue}.")
+                if (worryLevel % monkey.divideBy == 0L) {
+                    monkeys[monkey.onTrue].items += worryLevel
                 } else {
-                    //println("Current worry level is not divisible by ${monkey.divideBy}.")
-                    monkeys[monkey.onFalse].items += (worryLevel2 % prime)
-                    //println("Item with worry level ${worryLevel2} is thrown to monkey ${monkey.onFalse}.")
+                    monkeys[monkey.onFalse].items += worryLevel
                 }
             }
 
             monkey.items.clear()
-            //println()
         }
-
-        //monkeys.forEachIndexed { index, monkey -> println("$index -> ${monkey.items}") }
-        //println()
-
     }
 
-    fun part1(): Long {
-        //println("prime: ${prime}")
+    fun part1() = repeat(20) { round(true) }.run { score() }
 
-        repeat(20) {
-            round()
-            //println(counters)
-        }
+    fun part2() = repeat(10000) { round(false) }.run { score() }
 
-        return inspectionCounters.sorted().takeLast(2).reduce { a, b -> a * b }
-    }
-
-    fun part2(): Long {
-        //println("prime: ${prime}")
-
-        repeat(10000) {
-            round()
-            //println(counters)
-        }
-
-        return inspectionCounters.sorted().takeLast(2).reduce { a, b -> a * b }
-    }
+    private fun score() = inspectionCounters.sorted()
+        .takeLast(2)
+        .reduce { score, counter -> score * counter }
 
     sealed interface Operation {
         fun calculate(other: Long): Long
@@ -117,14 +92,4 @@ class Day11(input: String) {
         val onTrue: Int,
         val onFalse: Int
     )
-}
-
-fun main() {
-
-    val input = readText("day11.txt")
-//    val input = readText("day11.txt", true)
-
-    val result = Day11(input).part1()
-    println(result)
-
 }

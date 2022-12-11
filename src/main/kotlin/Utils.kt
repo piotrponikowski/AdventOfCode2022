@@ -10,11 +10,9 @@ fun readText(filename: String, test: Boolean = false): String {
 
 fun groupLines(input: String) = input
     .split(System.lineSeparator().repeat(2))
-    .map { group -> group.split(System.lineSeparator()) } 
+    .map { group -> group.split(System.lineSeparator()) }
 
 private fun path(test: Boolean) = if (test) "./src/test/resources/" else "./src/main/resources/"
-
-
 
 fun gcd(a: Long, b: Long): Long {
     if (b == 0L) return a
