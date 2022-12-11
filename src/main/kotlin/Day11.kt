@@ -13,7 +13,9 @@ class Day11(input: String) {
         }
 
     private val inspectionCounters = monkeys.map { 0L }.toMutableList()
-    private val totalDivideBy = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
+
+    private val totalDivideBy = monkeys.map { monkey -> monkey.divideBy }
+        .reduce { total, divideBy -> total * divideBy }
 
     private fun parseItems(line: String) = line.replace("Starting items: ", "")
         .split(",").map { item -> item.trim().toLong() }.toMutableList()
