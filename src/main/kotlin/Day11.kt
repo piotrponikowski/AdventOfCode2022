@@ -3,17 +3,18 @@ class Day11(input: String) {
     val monkeys = input.split(System.lineSeparator().repeat(2))
         .map { data ->
             val lines = data.split(System.lineSeparator())
-            val items = lines[1].replace("Starting items: ", "").split(",").map { it.trim().toInt() }
+            val items = lines[1].replace("Starting items: ", "").split(",").map { it.trim().toLong() }
             val operation = parseOperation(lines[2])
-            val divideBy = lines[3].split(" ").last().toInt()
+            val divideBy = lines[3].split(" ").last().toLong()
             val onTrue = lines[4].split(" ").last().toInt()
             val onFalse = lines[5].split(" ").last().toInt()
 
             Monkey(items.toMutableList(), operation, divideBy, onTrue, onFalse)
         }
 
-    val counters = monkeys.map { 0 }.toMutableList()
-    
+    val counters = monkeys.map { 0L }.toMutableList()
+    val prime = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
+
     fun parseOperation(line: String): Operation {
         val operationData = line.replace("Operation: new = ", "").trim().split(" ")
         val (arg1, operator, arg2) = operationData
@@ -22,13 +23,13 @@ class Day11(input: String) {
             if (arg2 == "old") {
                 return AddOldOperation
             } else {
-                return AddOperation(arg2.toInt())
+                return AddOperation(arg2.toLong())
             }
         } else if (operator == "*") {
             if (arg2 == "old") {
                 return MulOldOperation
             } else {
-                return MulOperation(arg2.toInt())
+                return MulOperation(arg2.toLong())
             }
         } else {
             throw RuntimeException("Unknown operation: $arg1 $operator $arg2")
@@ -43,69 +44,71 @@ class Day11(input: String) {
             monkey.items.forEach { item ->
                 //println("Monkey inspects an item with a worry level of ${item}.")
 
-                counters[index] += 1
-                
+                counters[index] += 1L
+
                 val worryLevel = monkey.operation.calculate(item)
                 //println("Worry level is calculated to ${worryLevel}.")
-                
-                val worryLevel2 = worryLevel / 3
+
+                val worryLevel2 = worryLevel
                 //println("Monkey gets bored with item. Worry level is divided by 3 to ${worryLevel2}.")
-                
-                if(worryLevel2 % monkey.divideBy == 0) {
+
+                if (worryLevel2 % monkey.divideBy == 0L) {
                     //println("Current worry level is divisible by ${monkey.divideBy}.")
-                    monkeys[monkey.onTrue].items += worryLevel2
+                    monkeys[monkey.onTrue].items += (worryLevel2 % prime)
                     //println("Item with worry level ${worryLevel2} is thrown to monkey ${monkey.onTrue}.")
                 } else {
                     //println("Current worry level is not divisible by ${monkey.divideBy}.")
-                    monkeys[monkey.onFalse].items += worryLevel2
+                    monkeys[monkey.onFalse].items += (worryLevel2 % prime)
                     //println("Item with worry level ${worryLevel2} is thrown to monkey ${monkey.onFalse}.")
                 }
             }
-            
+
             monkey.items.clear()
             //println()
         }
-        
-        monkeys.forEachIndexed { index, monkey -> println("$index -> ${monkey.items}") }
-        println()
+
+        //monkeys.forEachIndexed { index, monkey -> println("$index -> ${monkey.items}") }
+        //println()
 
     }
-    
-    fun part1():Int {
-        repeat(20) {
+
+    fun part1(): Long {
+        println("prime: ${prime}")
+        
+        repeat(10000) {
             round()
             println(counters)
         }
-        
-        return counters.sorted().takeLast(2).reduce {a, b -> a*b}
+
+        return counters.sorted().takeLast(2).reduce { a, b -> a * b }
     }
 
     fun part2() = 2
 
     sealed interface Operation {
-        fun calculate(other: Int): Int
+        fun calculate(other: Long): Long
     }
 
-    data class MulOperation(val value: Int) : Operation {
-        override fun calculate(other: Int) = value * other
+    data class MulOperation(val value: Long) : Operation {
+        override fun calculate(other: Long) = value * other
     }
 
     object MulOldOperation : Operation {
-        override fun calculate(other: Int) = other * other
+        override fun calculate(other: Long) = other * other
     }
 
-    data class AddOperation(val value: Int) : Operation {
-        override fun calculate(other: Int) = value + other
+    data class AddOperation(val value: Long) : Operation {
+        override fun calculate(other: Long) = value + other
     }
 
     object AddOldOperation : Operation {
-        override fun calculate(other: Int) = other + other
+        override fun calculate(other: Long) = other + other
     }
 
     data class Monkey(
-        val items: MutableList<Int>,
+        val items: MutableList<Long>,
         val operation: Operation,
-        val divideBy: Int,
+        val divideBy: Long,
         val onTrue: Int,
         val onFalse: Int
     )
