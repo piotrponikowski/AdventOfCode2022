@@ -2,13 +2,14 @@ class Day11(input: String) {
 
     private val monkeys = groupLines(input)
         .map { lines -> lines.drop(1) }
-        .map { (itemsLine, operationLine, divisorLine, trueLine, falseLine) ->
-            val items = parseItems(itemsLine)
-            val operation = parseOperation(operationLine)
-            val divideBy = parseDivisor(divisorLine)
-            val onTrue = parseResult(trueLine)
-            val onFalse = parseResult(falseLine)
-            Monkey(items, operation, divideBy, onTrue, onFalse)
+        .map { (items, operation, divisor, onTrue, onFalse) ->
+            Monkey(
+                parseItems(items),
+                parseOperation(operation),
+                parseDivisor(divisor),
+                parseResult(onTrue),
+                parseResult(onFalse)
+            )
         }
 
     private val inspectionCounters = monkeys.map { 0L }.toMutableList()
@@ -38,19 +39,16 @@ class Day11(input: String) {
             monkey.items.forEach { item ->
                 inspectionCounters[monkeyIndex]++
 
-                val worryLevel = monkey.operation.calculate(item)
-                    .let { base ->
-                        when (useRelief) {
-                            true -> base / 3
-                            false -> base % totalDivideBy
-                        }
-                    }
-
-                if (worryLevel % monkey.divideBy == 0L) {
-                    monkeys[monkey.onTrue].items += worryLevel
-                } else {
-                    monkeys[monkey.onFalse].items += worryLevel
+                val baseWorryLevel = monkey.operation.calculate(item)
+                val worryLevel = when (useRelief) {
+                    true -> baseWorryLevel / 3
+                    false -> baseWorryLevel % totalDivideBy
                 }
+
+                val result = worryLevel % monkey.divideBy == 0L
+                val nextMonkeyIndex = if (result) monkey.onTrue else monkey.onFalse
+
+                monkeys[nextMonkeyIndex].items += worryLevel
             }
 
             monkey.items.clear()
