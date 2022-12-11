@@ -1,19 +1,21 @@
 class Day11(input: String) {
 
-    val monkeys = input.split(System.lineSeparator().repeat(2))
-        .map { data ->
-            val lines = data.split(System.lineSeparator())
-            val items = lines[1].replace("Starting items: ", "").split(",").map { it.trim().toLong() }
-            val operation = parseOperation(lines[2])
-            val divideBy = lines[3].split(" ").last().toLong()
-            val onTrue = lines[4].split(" ").last().toInt()
-            val onFalse = lines[5].split(" ").last().toInt()
-
-            Monkey(items.toMutableList(), operation, divideBy, onTrue, onFalse)
+    private val monkeys = input.split(System.lineSeparator().repeat(2))
+        .map { data -> data.split(System.lineSeparator()).drop(1) }
+        .map { (itemsLine, operationLine, divisorLine, trueLine, falseLine) ->
+            val items = parseItems(itemsLine)
+            val operation = parseOperation(operationLine)
+            val divideBy = parseDivisor(divisorLine)
+            val onTrue = parseResult(trueLine)
+            val onFalse = parseResult(falseLine)
+            Monkey(items, operation, divideBy, onTrue, onFalse)
         }
 
-    val counters = monkeys.map { 0L }.toMutableList()
-    val prime = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
+    private val inspectionCounters = monkeys.map { 0L }.toMutableList()
+    private val prime = monkeys.map { it.divideBy }.reduce { a, b -> a * b }
+
+    private fun parseItems(line: String) = line.replace("Starting items: ", "")
+        .split(",").map { item -> item.trim().toLong() }.toMutableList()
 
     private fun parseOperation(line: String): Operation {
         val (_, operator, arg2) = line.replace("Operation: new = ", "").trim().split(" ")
@@ -26,7 +28,10 @@ class Day11(input: String) {
             else -> throw IllegalArgumentException("Unknown operation: $operator, $arg2")
         }
     }
+    
+    private fun parseDivisor(line: String) = line.split(" ").last().toLong()
 
+    private fun parseResult(line: String) = line.split(" ").last().toInt()
 
     fun round() {
 
@@ -35,7 +40,7 @@ class Day11(input: String) {
             monkey.items.forEach { item ->
                 //println("Monkey inspects an item with a worry level of ${item}.")
 
-                counters[index] += 1L
+                inspectionCounters[index] += 1L
 
                 val worryLevel = monkey.operation.calculate(item)
                 //println("Worry level is calculated to ${worryLevel}.")
@@ -65,13 +70,13 @@ class Day11(input: String) {
 
     fun part1(): Long {
         //println("prime: ${prime}")
-        
+
         repeat(20) {
             round()
             //println(counters)
         }
 
-        return counters.sorted().takeLast(2).reduce { a, b -> a * b }
+        return inspectionCounters.sorted().takeLast(2).reduce { a, b -> a * b }
     }
 
     fun part2(): Long {
@@ -82,7 +87,7 @@ class Day11(input: String) {
             //println(counters)
         }
 
-        return counters.sorted().takeLast(2).reduce { a, b -> a * b }
+        return inspectionCounters.sorted().takeLast(2).reduce { a, b -> a * b }
     }
 
     sealed interface Operation {
