@@ -1,91 +1,70 @@
 class Day12(input: List<String>) {
 
-    val rawPoints = input.map { line -> line.map { value -> value.toString().first() } }
-        .flatMapIndexed { y, line -> line.mapIndexed { x, height -> Point(x, y) to height } }.toMap()
+    private val board = input.map { line -> line.map { value -> value.toString().first() } }
+        .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
 
-    val points = rawPoints.mapValues { (_, b) -> b.code - 'a'.code }
+    private val heights = board.toMap().mapValues { (_, symbol) ->
+        when (symbol) {
+            'S' -> 0
+            'E' -> 25
+            else -> symbol.code - 'a'.code
+        }
+    }
 
-    val start = rawPoints.filter { it.value == 'S' }.map { it.key }.first()
-    val end = rawPoints.filter { it.value == 'E' }.map { it.key }
-        .first()
+    fun part1(): Int {
+        val start = findPointWithSymbol('S')
+        val exit = findPointWithSymbol('E')
 
+        return solve(start, exit)
+    }
 
-    fun solve(): List<Point> {
-        val visited = mutableMapOf<Point, Int>()
+    fun part2(): Int {
+        val starts = findAllStartPoints()
+        val exit = findPointWithSymbol('E')
 
-        val paths = mutableListOf(listOf(start))
-        visited[start] = 0
+        return starts.map { start -> solve(start, exit)}.min()
+    }
 
-        while (paths.isNotEmpty()) {
-            val currentPath = paths.removeFirst()
-            val lastPoint = currentPath.last()
-            val lastValue = if (lastPoint == start) -1 else points[lastPoint]!!
-            
+    private fun solve(start: Point, exit: Point): Int {
+        val pathsToCheck = mutableListOf(listOf(start))
+        val visitedPoints = mutableSetOf(start)
+
+        while (pathsToCheck.isNotEmpty()) {
+            val currentPath = pathsToCheck.removeFirst()
+            val currentPoint = currentPath.last()
+            val currentHeight = heights[currentPoint]!!
+
             directions.forEach { direction ->
+                val nextPoint = currentPoint + direction
+                val nextHeight = heights[nextPoint]
 
-                val nextPoint = lastPoint + direction
-                val nextValue = points[nextPoint]
+                if (nextHeight != null && nextHeight <= currentHeight + 1) {
 
-                if (nextPoint == end && rawPoints[lastPoint]!! == 'z') {
-                    return currentPath
-                }
+                    if (nextPoint == exit) {
+                        return currentPath.size
+                    }
 
-                if (nextPoint != end) {
-                    if (nextValue != null
-                        && (nextValue <= lastValue + 1)
-                        && (!visited.containsKey(nextPoint))
-                    ) {
-                        paths += (currentPath + nextPoint)
-                        visited[nextPoint] = currentPath.size
-
-
-//                        println("Adding ${paths.last()}")
+                    if (!visitedPoints.contains(nextPoint)) {
+                        pathsToCheck += currentPath + nextPoint
+                        visitedPoints += nextPoint
                     }
                 }
             }
-
-            println(printPoints(visited.keys))
-            println()
-
         }
 
-        throw RuntimeException("No solution")
+        return Int.MAX_VALUE
     }
 
-    fun part1() = solve().also { t -> println(printPoints(t.toSet())) }
+    private fun findPointWithSymbol(expectedValue: Char) = board
+        .first { (_, value) -> value == expectedValue }
+        .let { (key, _) -> key }
 
-    fun part2() = 2
-
-    private fun printPoints(state: Set<Point>): String {
-        val xMax = rawPoints.keys.maxOf { point -> point.x }
-        val xMin = rawPoints.keys.minOf { point -> point.x }
-        val yMax = rawPoints.keys.maxOf { point -> point.y }
-        val yMin = rawPoints.keys.minOf { point -> point.y }
-
-        return (yMin..yMax).joinToString("\n") { y ->
-            (xMin..xMax).joinToString("") { x ->
-                if (Point(x, y) in state) "#" else "."
-            }
-        }
-    }
+    private fun findAllStartPoints() = heights
+        .filter { (_, height) -> height == 0 }.keys
 
     private val directions = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-
-    val input = readLines("day12.txt")
-//    val input = readLines("day12.txt", true)
-
-    val result = Day12(input).part1()
-
-//    val day = Day12(input)
-//    println(day.printPoints(Day12(input).solve()))
-    
-    println(result)
-
 }
