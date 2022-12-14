@@ -40,17 +40,14 @@ class Day14(input: List<String>) {
     fun part1(): Int {
         while (true) {
             val point = drop()
-            
+
             if (point.y + 1 == maxY) {
                 break
             } else {
                 board[point] = 'o'
             }
-            
-            //println(printPoints())
-            //println(board.count { (key, value) -> value == 'o' })
         }
-        return board.count { (key, value) -> value == 'o' }
+        return board.count { (_, value) -> value == 'o' }
     }
 
     fun part2(): Int {
@@ -63,42 +60,14 @@ class Day14(input: List<String>) {
             } else {
                 board[point] = 'o'
             }
-
-            //println(printPoints())
-            //println(board.count { (key, value) -> value == 'o' })
         }
-        return board.count { (key, value) -> value == 'o' }
-    }
-    
-    fun printPoints(): String {
-        val xMax = board.keys.maxOf { point -> point.x }
-        val xMin = board.keys.minOf { point -> point.x }
-        val yMax = board.keys.maxOf { point -> point.y }
-        val yMin = board.keys.minOf { point -> point.y }
 
-        return (yMin..yMax).joinToString("\n") { y ->
-            (xMin..xMax).joinToString("") { x ->
-                (board[Point(x, y)] ?: ' ').toString()
-            }
-        }
+        return board.count { (_, value) -> value == 'o' }
     }
-
 
     private val directions = listOf(Point(0, 1), Point(-1, 1), Point(1, 1))
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-
-//    val input = readLines("day14.txt")
-    val input = readLines("day14.txt", true)
-
-    val day = Day14(input)
-    val result = day.part1()
-
-    println(result)
-
 }
