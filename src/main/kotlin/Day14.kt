@@ -37,28 +37,16 @@ class Day14(input: List<String>) {
         }
     }
 
-    fun part1(): Int {
+    fun part1() = solve { point -> point.y + 1 == maxY }
+
+    fun part2() = solve { point -> point == Point(500, 0) } + 1
+
+    fun solve(endCondition: (Point) -> Boolean): Int {
         while (true) {
             val point = drop()
-
-            if (point.y + 1 == maxY) {
-                break
-            } else {
-                board[point] = 'o'
-            }
-        }
-        return board.count { (_, value) -> value == 'o' }
-    }
-
-    fun part2(): Int {
-        while (true) {
-            val point = drop()
-
-            if (point == Point(500, 0)) {
-                board[point] = 'o'
-                break
-            } else {
-                board[point] = 'o'
+            when (endCondition(point)) {
+                true -> break
+                false -> board[point] = 'o'
             }
         }
 
