@@ -13,6 +13,18 @@ class Day15(input: List<String>) {
 
     private val beacons = points.map { (_, beacon) -> beacon }
 
+    fun part1(scanY: Int) = sensors
+        .map { (sensor, range) -> scanPerRow(sensor, range, scanY) }
+        .let { ranges -> reduceRanges(ranges).map { it.toSet() } }
+        .reduce { a, b -> a + b }
+        .count() - countBeacons(scanY)
+
+    fun part2() = (0..4000000).asSequence()
+        .map { scanY -> scanY to sensors.map { (sensor, range) -> scanPerRow(sensor, range, scanY) } }
+        .map { (scanY, ranges) -> scanY to reduceRanges(ranges) }
+        .first { (_, ranges) -> ranges.size > 1 }
+        .let { (scanY, ranges) -> (ranges.first().last + 1) * 4000000L + scanY }
+    
     private fun scanPerRow(sensor: Point, sensorRange: Int, scanRow: Int): IntRange {
         val rowMin = sensor.y - sensorRange
         val rowMax = sensor.y + sensorRange
@@ -28,25 +40,6 @@ class Day15(input: List<String>) {
             IntRange.EMPTY
         }
     }
-
-    private fun countBeacons(scanY: Int) = beacons
-        .filter { beacon -> beacon.y == scanY }
-        .map { beacon -> beacon.x }
-        .toSet().count()
-
-    fun part1(scanY: Int) = sensors
-        .map { (sensor, range) -> scanPerRow(sensor, range, scanY) }
-        .map { range -> range.toSet() }
-        .reduce { total, range -> total + range }
-        .count() - countBeacons(scanY)
-
-    fun part2() = (4000000 downTo 0).asSequence()
-        .map { scanY -> scanY to sensors.map { (sensor, range) -> scanPerRow(sensor, range, scanY) } }
-        .map { (scanY, ranges) -> scanY to reduceRanges(ranges) }
-        .first { (_, ranges) -> ranges.size > 1 }
-        .let { (scanY, ranges) -> 
-            (ranges.first().last + 1) * 4000000L + scanY 
-        }
 
     private fun reduceRanges(ranges: List<IntRange>): List<IntRange> {
         val sortedRanges = ranges
@@ -72,6 +65,11 @@ class Day15(input: List<String>) {
         return reducedRanges
     }
 
+    private fun countBeacons(scanY: Int) = beacons
+        .filter { beacon -> beacon.y == scanY }
+        .map { beacon -> beacon.x }
+        .toSet().count()
+
     private fun overlaps(r1: IntRange, r2: IntRange) = r1.first <= r2.last && r2.first <= r1.last
 
     private fun mergeRanges(r1: IntRange, r2: IntRange) = (min(r1.first, r2.first)..max(r1.last, r2.last))
@@ -80,20 +78,4 @@ class Day15(input: List<String>) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
         fun distance(other: Point) = abs(other.x - x) + abs(other.y - y)
     }
-}
-
-fun main() {
-
-    val input = readLines("day15.txt")
-//    val input = readLines("day15.txt", true)
-
-
-    val day = Day15(input)
-//    println(day.part1(10))
-//    println(day.part1(2000000))
-
-    println(day.part2())
-//    println(day.part2(2000000))
-
-
 }
