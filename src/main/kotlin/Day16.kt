@@ -9,107 +9,78 @@ class Day16(input: List<String>) {
         .map { (name, rate, leadsTo) -> Tunnel(name, rate.toInt(), leadsTo.split(", ")) }
         .associateBy { tunnel -> tunnel.name }
 
-    fun solve() {
+    fun solve(initState: Pair<State, Int>, minutes: Int): Map<State, Int> {
 
-        var states = mapOf(State("AA", "AA") to 0)
-        val visited = mutableMapOf<State, List<Int>>()
+        var states = mapOf(initState)
 
-        repeat(26) { minute ->
-            val timeLeft = (26 - minute) - 1
-            println("Minute ${minute}, ${states.size}")
+        repeat(minutes) { minute ->
+            val timeLeft = (minutes - minute) - 1
+            //println("Minute ${minute}, ${states.size}")
 
-            val score = states.values.sorted().reversed().take(1)
-            println("Max score: $score")
-
-            val partialStates = mutableMapOf<State, Int>()
             val nextStates = mutableMapOf<State, Int>()
 
-            // me
             for ((currentState, currentScore) in states) {
-                val currenTunnel = tunnels[currentState.c1]!!
-                val isOpen = currentState.c1 in currentState.opened
+                val currenTunnel = tunnels[currentState.currentName]!!
+                val isOpen = currentState.currentName in currentState.opened
 
                 if (!isOpen && currenTunnel.rate > 0) {
-                    val nextState = State(currentState.c1, currentState.c2, currentState.opened + currentState.c1)
+                    val nextState = State(currentState.currentName, currentState.opened + currentState.currentName)
                     val nextScore = currentScore + (currenTunnel.rate * timeLeft)
-                    val existingScore = max(partialStates[nextState] ?: -1, partialStates[nextState.flip()] ?: -1)
+                    val existingScore = nextStates[nextState] ?: -1
 
                     if (nextScore > existingScore) {
-                        partialStates[nextState] = nextScore
+                        nextStates[nextState] = nextScore
                     }
                 }
 
                 for (nextName in currenTunnel.leadsTo) {
-                    val nextState = State(nextName, currentState.c2, currentState.opened)
+                    val nextState = State(nextName, currentState.opened)
                     val nextScore = currentScore
-                    val existingScore = partialStates[nextState] ?: -1
+                    val existingScore = nextStates[nextState] ?: -1
 
                     if (nextScore > existingScore) {
-                        partialStates[nextState] = currentScore
-                    }
-                }
-            }
-
-            // elephant
-            for ((currentState, currentScore) in partialStates) {
-                val currenTunnel = tunnels[currentState.c2]!!
-                val isOpen = currentState.c2 in currentState.opened
-
-                if (!isOpen && currenTunnel.rate > 0) {
-                    val nextState = State(currentState.c1, currentState.c2, currentState.opened + currentState.c2)
-                    val nextScore = currentScore + (currenTunnel.rate * timeLeft)
-
-                    val visitedScores = visited[nextState]?: listOf()
-                    if(!visitedScores.contains(nextScore)) {
-                        val existingScore = nextStates[nextState] ?: -1
-
-                        if (nextScore > existingScore) {
-                            nextStates[nextState] = nextScore
-
-                            visited[nextState] = visitedScores + nextScore
-                            visited[nextState.flip()] = visitedScores + nextScore
-                        }
-                    }
-                    
-              
-                }
-
-                for (nextName in currenTunnel.leadsTo) {
-                    val nextState = State(currentState.c1, nextName, currentState.opened)
-                    val nextScore = currentScore
-
-                    val visitedScores = visited[nextState]?: listOf()
-                    if(!visitedScores.contains(nextScore)) {
-                     
-                        val existingScore = max(nextStates[nextState] ?: -1, nextStates[nextState.flip()] ?: -1)
-
-                        if (nextScore > existingScore) {
-                            nextStates[nextState] = currentScore
-                            
-                            visited[nextState] = visitedScores + currentScore
-                            visited[nextState.flip()] = visitedScores + currentScore
-                        }
+                        nextStates[nextState] = currentScore
                     }
                 }
             }
 
             states = nextStates
-            println()
         }
 
-
+        return states
     }
 
-    fun part2() {
-        solve()
+    fun part1(): Int {
+        val initialState = State("AA") to 0
+        val states = solve(initialState, 30)
+        val bestState = states.entries.maxBy { entry -> entry.value }
+        return bestState.value
     }
 
+    fun part2(): Int {
+        val initialState = State("AA") to 0
+        val states = solve(initialState, 26)
+        val sortedStates = states.entries.toList().sortedBy { it.value }.reversed()
+        var maxScore = 0
+        var counter = 0
+        
+        for(entry in sortedStates) {
+            counter++
+            val newStart = State("AA", entry.key.opened) to entry.value
+            val nextStates = solve(newStart, 26)
+            val bestState = nextStates.entries.maxBy { entry2 -> entry2.value }
+            if(bestState.value > maxScore) {
+                maxScore = bestState.value
+                println(maxScore)
+            }
+        }
+        
+        return maxScore
+    }
 
     data class Tunnel(val name: String, val rate: Int, val leadsTo: List<String>)
 
-    data class State(val c1: String, val c2: String, val opened: Set<String> = setOf()) {
-        fun flip() = State(c2, c1, opened)
-    }
+    data class State(val currentName: String, val opened: List<String> = listOf())
 }
 
 fun main() {
