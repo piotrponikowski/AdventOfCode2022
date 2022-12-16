@@ -12,7 +12,7 @@ class Day16(input: List<String>) {
     fun solve() {
 
         var states = mapOf(State("AA", "AA") to 0)
-        val visited = setOf<State>()
+        val visited = mutableMapOf<State, List<Int>>()
 
         repeat(26) { minute ->
             val timeLeft = (26 - minute) - 1
@@ -58,20 +58,37 @@ class Day16(input: List<String>) {
                 if (!isOpen && currenTunnel.rate > 0) {
                     val nextState = State(currentState.c1, currentState.c2, currentState.opened + currentState.c2)
                     val nextScore = currentScore + (currenTunnel.rate * timeLeft)
-                    val existingScore = nextStates[nextState] ?: -1
 
-                    if (nextScore > existingScore) {
-                        nextStates[nextState] = nextScore
+                    val visitedScores = visited[nextState]?: listOf()
+                    if(!visitedScores.contains(nextScore)) {
+                        val existingScore = nextStates[nextState] ?: -1
+
+                        if (nextScore > existingScore) {
+                            nextStates[nextState] = nextScore
+
+                            visited[nextState] = visitedScores + nextScore
+                            visited[nextState.flip()] = visitedScores + nextScore
+                        }
                     }
+                    
+              
                 }
 
                 for (nextName in currenTunnel.leadsTo) {
                     val nextState = State(currentState.c1, nextName, currentState.opened)
                     val nextScore = currentScore
-                    val existingScore = max(nextStates[nextState] ?: -1, nextStates[nextState.flip()] ?: -1)
 
-                    if (nextScore > existingScore) {
-                        nextStates[nextState] = currentScore
+                    val visitedScores = visited[nextState]?: listOf()
+                    if(!visitedScores.contains(nextScore)) {
+                     
+                        val existingScore = max(nextStates[nextState] ?: -1, nextStates[nextState.flip()] ?: -1)
+
+                        if (nextScore > existingScore) {
+                            nextStates[nextState] = currentScore
+                            
+                            visited[nextState] = visitedScores + currentScore
+                            visited[nextState.flip()] = visitedScores + currentScore
+                        }
                     }
                 }
             }
@@ -97,8 +114,8 @@ class Day16(input: List<String>) {
 
 fun main() {
 
-//    val input = readLines("day16.txt")
-    val input = readLines("day16.txt", true)
+    val input = readLines("day16.txt")
+//    val input = readLines("day16.txt", true)
 
     val result = Day16(input).part2()
     println(result)
