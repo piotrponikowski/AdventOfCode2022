@@ -29,7 +29,7 @@ class Day17(input: String) {
         return calculateScore(boardStates, loopIndex, 1000000000000L)
     }
 
-    fun solveUntilLoop(): Pair<List<Pair<BoardState, Int>>, Int> {
+    private fun solveUntilLoop(): Pair<List<Pair<BoardState, Int>>, Int> {
         val board = mutableSetOf<Point>()
         val boardStates = mutableListOf<Pair<BoardState, Int>>()
 
