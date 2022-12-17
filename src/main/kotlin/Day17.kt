@@ -1,17 +1,17 @@
 class Day17(input: String) {
 
-    val left = Point(-1, 0)
-    val right = Point(1, 0)
-    val down = Point(0, -1)
+    private val left = Point(-1, 0)
+    private val right = Point(1, 0)
+    private val down = Point(0, -1)
 
-    val directions = input.map { symbol ->
+    private val directions = input.map { symbol ->
         when (symbol) {
             '>' -> right
             else -> left
         }
     }
 
-    val blocks = listOf(
+    private val blocks = listOf(
         listOf(Point(0, 0), Point(1, 0), Point(2, 0), Point(3, 0)),
         listOf(Point(0, 1), Point(1, 0), Point(1, 1), Point(2, 1), Point(1, 2)),
         listOf(Point(0, 0), Point(1, 0), Point(2, 0), Point(2, 1), Point(2, 2)),
