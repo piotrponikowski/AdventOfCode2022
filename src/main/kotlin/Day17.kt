@@ -19,30 +19,27 @@ class Day17(input: String) {
         listOf(Point(0, 0), Point(0, 1), Point(1, 0), Point(1, 1))
     )
 
-    fun solve() {
+    fun solve(): Pair<List<Pair<BoardState, Int>>, Int> {
         val board = mutableSetOf<Point>()
-        val seen = mutableListOf<Pair<State, Int>>()
+        val boardStates = mutableListOf<Pair<BoardState, Int>>()
 
         var blockIndex = 0
         var directionIndex = 0
-        
-        var score = 0
-  
-        while (true) {
-            val boardSignature = signature(board)
 
-            val id = State(blockIndex, directionIndex, boardSignature)
-            if (seen.find { it.first == id } != null) {
-                println("loop")
-                part2Score(id, seen)
-                
-                break
+        var score = 0
+
+        while (true) {
+            val boardState = toBoardState(blockIndex, directionIndex, board)
+            val loopIndex = boardStates.indexOfFirst { (otherBoardId, _) -> otherBoardId == boardState }
+            
+            if (loopIndex > -1) {
+                return boardStates to loopIndex
+            } else {
+                boardStates += boardState to score  
             }
 
-            seen += id to score
-
-            val top = board.maxOfOrNull { point -> point.y } ?: -1
-            var block = blocks[blockIndex].map { point -> Point(point.x + 2, point.y + (top + 4)) }
+            val topPoint = board.maxOfOrNull { point -> point.y } ?: -1
+            var currentBlock = blocks[blockIndex].map { point -> Point(point.x + 2, point.y + (topPoint + 4)) }
             blockIndex = (blockIndex + 1) % blocks.size
 
             while (true) {
@@ -50,57 +47,53 @@ class Day17(input: String) {
                 directionIndex = (directionIndex + 1) % directions.size
 
 
-                val movedBlock = block.map { it + direction }
+                val movedBlock = currentBlock.map { it + direction }
                 val movedMaxX = movedBlock.maxOf { it.x }
                 val movedMinX = movedBlock.minOf { it.x }
 
                 if (movedBlock.intersect(board).isEmpty() && movedMinX >= 0 && movedMaxX <= 6) {
-                    block = movedBlock
+                    currentBlock = movedBlock
                 }
 
-                val droppedBlock = block.map { it + down }
+                val droppedBlock = currentBlock.map { it + down }
                 if (droppedBlock.intersect(board).isEmpty() && droppedBlock.minOf { it.y } >= 0) {
-                    block = droppedBlock
+                    currentBlock = droppedBlock
 
                 } else {
-                    board += block
+                    board += currentBlock
                     break
                 }
             }
 
             score = board.maxOf { it.y } + 1
-
-
         }
-
     }
 
-    private fun part2Score(id: State, seen: List<Pair<State, Int>>) {
-        val loopStartIndex = seen.indexOfFirst { it.first == id }
+    private fun part2Score(seen: List<Pair<BoardState, Int>>, loopStartIndex: Int) {
         val loopSize = seen.size - loopStartIndex
-        
-        val loopStartScore = seen[loopStartIndex-1].second
+
+        val loopStartScore = seen[loopStartIndex - 1].second
         val loopScore = seen.last().second - loopStartScore
 
         val blocks = 1000000000000L
-        
-        val loopsCount = (blocks - loopStartIndex) / loopSize
 
+        val loopsCount = (blocks - loopStartIndex) / loopSize
 
         val remainingCount = (blocks - loopStartIndex) % loopSize
         val remainingScore = seen[loopStartIndex + remainingCount.toInt()].second - loopStartScore
-        
+
         val score = loopStartScore + (loopsCount * loopScore) + remainingScore
-        
+
         println(score)
         println()
     }
 
-    private fun signature(board: Set<Point>): List<Int> {
-        val sign = (0..6).map { x -> board.filter { it.x == x }.maxOfOrNull { it.y } ?: 0 }
-        val min = sign.min()
+    private fun toBoardState(boardIndex: Int, directionIndex: Int, board: Set<Point>): BoardState {
+        val topPoints = (0..6).map { x -> board.filter { point -> point.x == x }.maxOfOrNull { point -> point.y } ?: 0 }
+        val minTopPoint = topPoints.min()
+        val normalizedTopPoints = topPoints.map { point -> point - minTopPoint }
 
-        return sign.map { it - min }
+        return BoardState(boardIndex, directionIndex, normalizedTopPoints)
     }
 
     fun part1() {
@@ -108,23 +101,11 @@ class Day17(input: String) {
     }
 
     fun part2() {
-        solve()
+        val (boardStates, loopIndex) = solve()
+        part2Score(boardStates, loopIndex)
     }
 
-    private fun printPoints(state: Set<Point>): String {
-        val xMax = 6
-        val xMin = 0
-        val yMax = state.maxOf { point -> point.y }
-        val yMin = state.minOf { point -> point.y }
-
-        return (yMax downTo yMin).joinToString("\n") { y ->
-            (xMin..xMax).joinToString("") { x ->
-                if (Point(x, y) in state) "#" else "."
-            }
-        }
-    }
-
-    data class State(val blockIndex: Int, val directionIndex: Int, val top: List<Int>)
+    data class BoardState(val blockIndex: Int, val directionIndex: Int, val topPoints: List<Int>)
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
