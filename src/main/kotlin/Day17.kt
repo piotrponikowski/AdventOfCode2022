@@ -19,6 +19,16 @@ class Day17(input: String) {
         listOf(Point(0, 0), Point(0, 1), Point(1, 0), Point(1, 1))
     )
 
+    fun part1(): Long {
+        val (boardStates, loopIndex) = solve()
+        return calculateScore(2022, boardStates, loopIndex)
+    }
+
+    fun part2(): Long {
+        val (boardStates, loopIndex) = solve()
+        return calculateScore(1000000000000L, boardStates, loopIndex)
+    }
+    
     fun solve(): Pair<List<Pair<BoardState, Int>>, Int> {
         val board = mutableSetOf<Point>()
         val boardStates = mutableListOf<Pair<BoardState, Int>>()
@@ -31,11 +41,11 @@ class Day17(input: String) {
         while (true) {
             val boardState = toBoardState(blockIndex, directionIndex, board)
             val loopIndex = boardStates.indexOfFirst { (otherBoardId, _) -> otherBoardId == boardState }
-            
+
             if (loopIndex > -1) {
                 return boardStates to loopIndex
             } else {
-                boardStates += boardState to score  
+                boardStates += boardState to score
             }
 
             val topPoint = board.maxOfOrNull { point -> point.y } ?: -1
@@ -69,23 +79,18 @@ class Day17(input: String) {
         }
     }
 
-    private fun part2Score(seen: List<Pair<BoardState, Int>>, loopStartIndex: Int) {
+    private fun calculateScore(repeat: Long, seen: List<Pair<BoardState, Int>>, loopStartIndex: Int): Long {
         val loopSize = seen.size - loopStartIndex
 
         val loopStartScore = seen[loopStartIndex - 1].second
         val loopScore = seen.last().second - loopStartScore
+        
+        val loopsCount = (repeat - loopStartIndex) / loopSize
 
-        val blocks = 1000000000000L
-
-        val loopsCount = (blocks - loopStartIndex) / loopSize
-
-        val remainingCount = (blocks - loopStartIndex) % loopSize
+        val remainingCount = (repeat - loopStartIndex) % loopSize
         val remainingScore = seen[loopStartIndex + remainingCount.toInt()].second - loopStartScore
 
-        val score = loopStartScore + (loopsCount * loopScore) + remainingScore
-
-        println(score)
-        println()
+        return loopStartScore + (loopsCount * loopScore) + remainingScore
     }
 
     private fun toBoardState(boardIndex: Int, directionIndex: Int, board: Set<Point>): BoardState {
@@ -96,28 +101,9 @@ class Day17(input: String) {
         return BoardState(boardIndex, directionIndex, normalizedTopPoints)
     }
 
-    fun part1() {
-        solve()
-    }
-
-    fun part2() {
-        val (boardStates, loopIndex) = solve()
-        part2Score(boardStates, loopIndex)
-    }
-
     data class BoardState(val blockIndex: Int, val directionIndex: Int, val topPoints: List<Int>)
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-
-    val input = readText("day17.txt")
-//    val input = readText("day17.txt", true)
-
-    val result = Day17(input).part2()
-    println(result)
-
 }
