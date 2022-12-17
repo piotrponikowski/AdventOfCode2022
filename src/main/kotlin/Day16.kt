@@ -1,22 +1,17 @@
-import kotlin.math.max
-
 class Day16(input: List<String>) {
 
     private val pattern = Regex("""Valve (.+) has flow rate=(\d+); tunnels? leads? to valves? (.+)""")
 
-    val tunnels = input
+    private val tunnels = input
         .map { line -> pattern.matchEntire(line)!!.destructured }
         .map { (name, rate, leadsTo) -> Tunnel(name, rate.toInt(), leadsTo.split(", ")) }
         .associateBy { tunnel -> tunnel.name }
 
     fun solve(initState: Pair<State, Int>, minutes: Int): Map<State, Int> {
-
         var states = mapOf(initState)
 
         repeat(minutes) { minute ->
             val timeLeft = (minutes - minute) - 1
-            //println("Minute ${minute}, ${states.size}")
-
             val nextStates = mutableMapOf<State, Int>()
 
             for ((currentState, currentScore) in states) {
@@ -50,45 +45,35 @@ class Day16(input: List<String>) {
         return states
     }
 
-    fun part1(): Int {
-        val initialState = State("AA") to 0
-        val states = solve(initialState, 30)
-        val bestState = states.entries.maxBy { entry -> entry.value }
-        return bestState.value
-    }
+    fun part1() = solve(State("AA") to 0, 30)
+        .entries.maxBy { entry -> entry.value }
+        .value
+
 
     fun part2(): Int {
-        val initialState = State("AA") to 0
-        val states = solve(initialState, 26)
-        val sortedStates = states.entries.toList().sortedBy { it.value }.reversed()
-        var maxScore = 0
-        var counter = 0
+        val states = solve(State("AA") to 0, 26)
+
+        val bestStates = states.map { it.key.opened to it.value }
+            .groupBy({ a -> a.first }, { b -> b.second })
+            .mapValues { (_, scores) -> scores.max() }
         
-        for(entry in sortedStates) {
-            counter++
-            val newStart = State("AA", entry.key.opened) to entry.value
-            val nextStates = solve(newStart, 26)
-            val bestState = nextStates.entries.maxBy { entry2 -> entry2.value }
-            if(bestState.value > maxScore) {
-                maxScore = bestState.value
-                println(maxScore)
+        var maxScore = 0
+        for (state1 in bestStates) {
+            for (state2 in bestStates) {
+                if (state1.key.intersect(state2.key).isEmpty()) {
+
+                    val score = state1.value + state2.value
+                    if (score > maxScore) {
+                        maxScore = score
+                    }
+                }
             }
         }
-        
+
         return maxScore
     }
 
     data class Tunnel(val name: String, val rate: Int, val leadsTo: List<String>)
 
-    data class State(val currentName: String, val opened: List<String> = listOf())
-}
-
-fun main() {
-
-    val input = readLines("day16.txt")
-//    val input = readLines("day16.txt", true)
-
-    val result = Day16(input).part2()
-    println(result)
-
+    data class State(val currentName: String, val opened: Set<String> = setOf())
 }
