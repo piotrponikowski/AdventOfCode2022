@@ -20,24 +20,18 @@ class Day17(input: String) {
     )
 
     fun solve() {
-
         val board = mutableSetOf<Point>()
-        var directionCounter = 0
+        val seen = mutableListOf<Pair<State, Int>>()
 
-        val seen = mutableListOf<Pair<Condition, Int>>()
+        var blockIndex = 0
+        var directionIndex = 0
+        
         var score = 0
-        var blockCounter = 0
+  
         while (true) {
-
-            val top = board.maxOfOrNull { point -> point.y } ?: -1
-            var block = blocks[blockCounter % blocks.size].map { point -> Point(point.x + 2, point.y + (top + 4)) }
-
-
-            val blockSignature = blockCounter % blocks.size
-            val directionSignature = directionCounter % directions.size
             val boardSignature = signature(board)
 
-            val id = Condition(blockSignature, directionSignature, boardSignature)
+            val id = State(blockIndex, directionIndex, boardSignature)
             if (seen.find { it.first == id } != null) {
                 println("loop")
                 part2Score(id, seen)
@@ -47,12 +41,14 @@ class Day17(input: String) {
 
             seen += id to score
 
-            while (true) {
-                val direction = directions[directionCounter % directions.size]
-                directionCounter += 1
-                //println(direction)
+            val top = board.maxOfOrNull { point -> point.y } ?: -1
+            var block = blocks[blockIndex].map { point -> Point(point.x + 2, point.y + (top + 4)) }
+            blockIndex = (blockIndex + 1) % blocks.size
 
-                //println(printPoints(board + block))
+            while (true) {
+                val direction = directions[directionIndex]
+                directionIndex = (directionIndex + 1) % directions.size
+
 
                 val movedBlock = block.map { it + direction }
                 val movedMaxX = movedBlock.maxOf { it.x }
@@ -72,28 +68,14 @@ class Day17(input: String) {
                 }
             }
 
-//            println()
-//            println(printPoints(board))
-//            println()
             score = board.maxOf { it.y } + 1
 
-            blockCounter++
+
         }
-
-
-//        val count = 1000000000000L
-//        val loopScore = seen[seen.size - 2].second
-//        val loopSize = seen.size - 1
-//
-//        val willRepeat = count / loopSize
-//
-//        val result = loopScore * willRepeat
-//        println(result)
-//        println()
 
     }
 
-    private fun part2Score(id: Condition, seen: List<Pair<Condition, Int>>) {
+    private fun part2Score(id: State, seen: List<Pair<State, Int>>) {
         val loopStartIndex = seen.indexOfFirst { it.first == id }
         val loopSize = seen.size - loopStartIndex
         
@@ -142,7 +124,7 @@ class Day17(input: String) {
         }
     }
 
-    data class Condition(val block: Int, val direction: Int, val top: List<Int>)
+    data class State(val blockIndex: Int, val directionIndex: Int, val top: List<Int>)
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
