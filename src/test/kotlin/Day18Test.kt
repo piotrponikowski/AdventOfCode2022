@@ -22,7 +22,7 @@ class Day18Test : FunSpec({
         }
 
         test("should solve real input") {
-            Day18(realInput).part2() shouldBe 4062
+            Day18(realInput).part2() shouldBe 2492
         }
     }
 })
