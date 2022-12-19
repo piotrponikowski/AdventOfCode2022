@@ -30,10 +30,9 @@ class Day16(input: List<String>) {
 
                 for (nextName in currenTunnel.leadsTo) {
                     val nextState = State(nextName, currentState.opened)
-                    val nextScore = currentScore
                     val existingScore = nextStates[nextState] ?: -1
 
-                    if (nextScore > existingScore) {
+                    if (currentScore > existingScore) {
                         nextStates[nextState] = currentScore
                     }
                 }
