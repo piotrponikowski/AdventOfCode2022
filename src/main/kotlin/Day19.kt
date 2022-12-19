@@ -15,7 +15,6 @@ class Day19(input: List<String>) {
         .associate { costPart -> costPart.split(" ").let { (amount, type) -> type to amount.toInt() } }
         .let { cost -> Resources.fromMap(cost) }
 
-
     fun part1() = blueprints
         .mapIndexed { index, blueprint -> index + 1 to solve(blueprint, 24) }
         .sumOf { (id, geodes) -> id * geodes }
@@ -61,8 +60,7 @@ class Day19(input: List<String>) {
                         nextStates += currentState.build(recipe)
                     }
                 }
-
-
+                
                 nextStates += currentState.collect()
             }
 
