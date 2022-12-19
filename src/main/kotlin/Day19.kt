@@ -1,108 +1,108 @@
 class Day19(input: List<String>) {
 
-//    val pattern = Regex(""".*Each (\w+) robot costs (.*)""")
+    private val pattern = Regex("""Each (\w+) robot costs (.+?)\.""")
 
-    val blueprints = input.map { line -> line.split(".") }
-        .map { robotLines ->
-            robotLines.filter { it.isNotBlank() }.map { robotLine ->
-                val (typeLise, costLine) = robotLine.split(" robot costs ")
-                val type = typeLise.split(" ").last()
-                val cost = costLine.split(" and ").map {
-                    val (inAmount, inType) = it.split(" ")
-                    Cost(inType, inAmount.toInt())
-                }.toSet()
+    private val blueprints = input.map { line -> parseBlueprint(line) }
 
-                Receipt(type, cost)
+    private fun parseBlueprint(content: String) = pattern.findAll(content)
+        .map { match -> match.destructured }
+        .map { (type, cost) -> Recipe(parseType(type), parseCost(cost)) }
+        .let { recipes -> Blueprint(recipes.toList()) }
+
+    private fun parseType(type: String) = Resources.fromMap(mapOf(type to 1))
+
+    private fun parseCost(costContent: String) = costContent.split(" and ")
+        .associate { costPart -> costPart.split(" ").let { (amount, type) -> type to amount.toInt() } }
+        .let { cost -> Resources.fromMap(cost) }
+
+
+    fun part1() = blueprints
+        .mapIndexed { index, blueprint -> index + 1 to solve(blueprint, 24) }
+        .sumOf { (id, geodes) -> id * geodes }
+
+    fun part2() = blueprints.take(3)
+        .map { blueprint -> solve(blueprint, 32) }
+        .reduce { score, geodes -> score * geodes }
+
+    fun solve(blueprint: Blueprint, minutes: Int): Int {
+        val initialState = State(Resources(1, 0, 0, 0), Resources(0, 0, 0, 0))
+        var states = mutableListOf(initialState)
+
+        val maxOreRobots = blueprint.recipes
+            .filter { recipe -> recipe.robot.ore == 0 }.maxOf { recipe -> recipe.cost.ore }
+
+        val maxClayRobots = blueprint.recipes.maxOf { recipe -> recipe.cost.clay }
+
+        val maxObsidianRobots = blueprint.recipes.maxOf { recipe -> recipe.cost.obsidian }
+
+        var maxGeodes = 0
+
+        repeat(minutes) {
+            val nextStates = mutableListOf<State>()
+
+            while (states.isNotEmpty()) {
+                val currentState = states.removeFirst()
+
+
+                for (recipe in blueprint.recipes) {
+                    if (recipe.robot.ore > 0 && currentState.robots.ore >= maxOreRobots) {
+                        continue
+                    }
+
+                    if (recipe.robot.clay > 0 && currentState.robots.clay >= maxClayRobots) {
+                        continue
+                    }
+
+                    if (recipe.robot.obsidian > 0 && currentState.robots.obsidian >= maxObsidianRobots) {
+                        continue
+                    }
+
+                    if (currentState.canBuild(recipe)) {
+                        nextStates += currentState.build(recipe)
+                    }
+                }
+
+
+                nextStates += currentState.collect()
             }
+
+            maxGeodes = nextStates.maxOf { state -> state.collected.geode }
+
+            val filteredStates = nextStates.filter { state -> maxGeodes - state.collected.geode <= 2 }
+            val sorted = filteredStates.sortedBy { state -> state.quality() }.reversed().take(20000).toMutableList()
+
+            states = sorted
         }
 
+        return maxGeodes
+    }
 
-    fun solve(blueprint: List<Receipt>) {
-        val initState = State(mapOf("ore" to 1), emptyMap())
-        var statesToCheck = listOf(initState)
+    data class State(val robots: Resources, val collected: Resources) {
+        fun collect() = State(robots, collected + robots)
 
-        repeat(24) { minute ->
-            println("Minute: $minute")
-            val nextStates = mutableSetOf<State>()
+        fun canBuild(recipe: Recipe) = (collected - recipe.cost).isSufficient()
 
-            statesToCheck.forEach { stateToCheck ->
+        fun build(recipe: Recipe) = State(robots + recipe.robot, (collected - recipe.cost) + robots)
 
-                // gathering
-                val nextGathered = stateToCheck.gathered.toMutableMap()
-                for (robot in stateToCheck.robots) {
-                    val alreadyGathered = nextGathered[robot.key] ?: 0
-                    val newGathered = alreadyGathered + robot.value
-                    nextGathered[robot.key] = newGathered
-                }
+        fun quality() = robots.ore + (robots.clay * 10) + (robots.obsidian * 100) + (robots.geode * 1000)
+    }
 
-                nextStates += State(stateToCheck.robots, nextGathered.toMap())
+    data class Blueprint(val recipes: List<Recipe>)
 
-                //constructing
-                blueprint.forEach { recipe ->
-                    val canConstruct = recipe.cost.all { cost ->
-                        val gathered = stateToCheck.gathered[cost.type] ?: 0
-                        gathered >= cost.amount
-                    }
+    data class Recipe(val robot: Resources, val cost: Resources)
 
-                    if (canConstruct) {
-                        val nextRobots = stateToCheck.robots.toMutableMap()
-                        nextRobots[recipe.type] = (nextRobots[recipe.type] ?: 0) + 1
+    data class Resources(val ore: Int, val clay: Int, val obsidian: Int, val geode: Int) {
+        operator fun plus(other: Resources) =
+            Resources(ore + other.ore, clay + other.clay, obsidian + other.obsidian, geode + other.geode)
 
-                        val nextGathered2 = nextGathered.toMutableMap()
+        operator fun minus(other: Resources) =
+            Resources(ore - other.ore, clay - other.clay, obsidian - other.obsidian, geode - other.geode)
 
-                        recipe.cost.forEach { cost ->
-                            nextGathered2[cost.type] = nextGathered2[cost.type]!! - cost.amount
-                        }
+        fun isSufficient() = ore >= 0 && clay >= 0 && obsidian >= 0 && geode >= 0
 
-                        nextStates += State(nextRobots, nextGathered2.toMap())
-                    }
-                }
-            }
-
-            
-            val groupedStates = nextStates.groupBy { it.robots }
-
-            val filteredStates = groupedStates.flatMap { group ->
-
-                val filteredStates = group.value.filter { current ->
-
-                    val better = nextStates.find { other ->
-                        current != other && other.robots == current.robots && current.gathered.all { (key, value) ->
-                            (other.gathered[key] ?: 0) >= value
-                        }
-                    }
-                    
-                    better == null
-                }
-
-                filteredStates
-            }
-            
-            println(filteredStates.size)
-            statesToCheck = filteredStates.toList()
+        companion object {
+            fun fromMap(input: Map<String, Int>) =
+                Resources(input["ore"] ?: 0, input["clay"] ?: 0, input["obsidian"] ?: 0, input["geode"] ?: 0)
         }
-
-
     }
-
-    fun part1() {
-        solve(blueprints[0])
-    }
-
-    fun part2() = 2
-
-    data class State(val robots: Map<String, Int>, val gathered: Map<String, Int>)
-
-    data class Cost(val type: String, val amount: Int)
-    data class Receipt(val type: String, val cost: Set<Cost>)
-}
-
-fun main() {
-
-//    val input = readLines("day19.txt")
-    val input = readLines("day19.txt", true)
-
-    val result = Day19(input).part1()
-    println(result)
-
 }
