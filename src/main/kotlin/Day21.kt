@@ -16,9 +16,13 @@ class Day21(input: List<String>) {
         }
     }
 
-    fun solve() {
+    fun solve(humn: Long) {
         val solution = mutableMapOf<String, Long>()
-        val unsolvedMonkeys = monkeys.toMutableList()
+        
+        var unsolvedMonkeys = monkeys.toMutableList()
+        unsolvedMonkeys = unsolvedMonkeys.filterNot { it is ValueMonkey && it.name == "humn" }.toMutableList()
+        unsolvedMonkeys += ValueMonkey("humn", humn)
+
 
         while (unsolvedMonkeys.isNotEmpty()) {
             val solvedMonkeys = mutableSetOf<Monkey>()
@@ -27,8 +31,8 @@ class Day21(input: List<String>) {
                     is ValueMonkey -> {
                         solution[monkey.name] = monkey.value
                         solvedMonkeys += monkey
-                        
-                        println("Solved: ${monkey.name}")
+
+                        //println("Solved: ${monkey.name}")
                     }
                     is OperationMonkey -> {
                         val val1 = solution[monkey.arg1]
@@ -36,8 +40,8 @@ class Day21(input: List<String>) {
                         if (val1 != null && val2 != null) {
                             solution[monkey.name] = monkey.calculate(val1, val2)
                             solvedMonkeys += monkey
-                            
-                            println("Solved: ${monkey.name}")
+
+                            //println("Solved: ${monkey.name}")
                         }
                     }
                 }
@@ -45,16 +49,25 @@ class Day21(input: List<String>) {
 
             unsolvedMonkeys -= solvedMonkeys
         }
-        
-        println(solution)
-        println(solution["root"])
+
+        //println(solution)
+        val root = monkeys.find { it is OperationMonkey && it.name == "root" }!! as OperationMonkey
+        val val1 = solution[root.arg1]!!
+        val val2 = solution[root.arg2]!!
+
+
+        println("$humn -> ${val1 - val2}")
     }
 
-    fun part1()  {
-        solve()
+    fun part1() {
+//        solve()
     }
 
-    fun part2() = 2
+    fun part2() {
+        (3952288690000L..Long.MAX_VALUE).forEach { humn ->
+            solve(humn.toLong())
+        }
+    }
 
 
     sealed interface Monkey
@@ -78,7 +91,7 @@ fun main() {
     val input = readLines("day21.txt")
 //    val input = readLines("day21.txt", true)
 
-    val result = Day21(input).part1()
+    val result = Day21(input).part2()
     println(result)
 
 }
