@@ -29,6 +29,8 @@ class Day22(input: String) {
     fun solve():Int {
         var position = startingPoint
         var direction = startingDirection
+
+        println("Position: $position, direction: $direction")
         
         for (instruction in instructions) {
             println("Instruction: $instruction")
@@ -59,15 +61,16 @@ class Day22(input: String) {
                         }
                         
                         val wrapPosition = Point(wrapX, wrapY)
-                        
-                        position = wrapPosition
+                        if(board[wrapPosition]!! == '.') {
+                            position = wrapPosition  
+                        }
                     } else if(newSymbol == '.') {
                         position = newPosition
                     } 
                 }
                 
             }
-
+            
             println("Position: $position, direction: $direction")
             println()
         }
@@ -85,14 +88,43 @@ class Day22(input: String) {
         
         val score = ((position.y+1) * 1000) + ((position.x+1) * 4) + directionScore
         
+        println()
+        
+        
         return score
     }
 
     fun part1() =solve()
     
 
-    fun part2() = 2
+    fun part2()  {
+        val xMax = board.keys.maxOf { point -> point.x }
+        val xMin = board.keys.minOf { point -> point.x }
+        val yMax = board.keys.maxOf { point -> point.y }
+        val yMin = board.keys.minOf { point -> point.y }
 
+        val width = xMax+1
+        val height = yMax+1
+        
+        val cubeSize= width / 4
+
+
+        println()
+    }
+
+
+    private fun printPoints(state: Map<Point, Char>): String {
+        val xMax = state.keys.maxOf { point -> point.x }
+        val xMin = state.keys.minOf { point -> point.x }
+        val yMax = state.keys.maxOf { point -> point.y }
+        val yMin = state.keys.minOf { point -> point.y }
+
+        return (yMin..yMax).joinToString("\n") { y ->
+            (xMin..xMax).joinToString("") { x ->
+                (state[Point(x, y)] ?: ' ').toString()
+            }
+        }
+    }
     
     val right = Point(1, 0)
     val left = Point(-1, 0)
@@ -106,10 +138,10 @@ class Day22(input: String) {
 
 fun main() {
 
-    val input = readText("day22.txt")
-//    val input = readText("day22.txt", true)
+//    val input = readText("day22.txt")
+    val input = readText("day22.txt", true)
 
-    val result = Day22(input).part1()
+    val result = Day22(input).part2()
     println(result)
 
 }
