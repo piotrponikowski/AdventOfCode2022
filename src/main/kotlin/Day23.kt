@@ -67,8 +67,8 @@ class Day23(input: List<String>) {
 
     private fun executeMoves(plannedMoves: List<Pair<Point, Point>>): Set<Point> {
         val noCollisionMoves = plannedMoves
-            .groupBy({ it.second }, { it.first })
-            .filter { (_, positions) -> positions.size == 1 }
+            .groupBy({ (_, nextPosition) -> nextPosition }, { (position, _) -> position })
+            .filter { (_, group) -> group.size == 1 }
             .keys
 
         val newPositions = plannedMoves.map { (position, nextPosition) ->
