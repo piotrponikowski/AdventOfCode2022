@@ -6,6 +6,46 @@ class Day23(input: List<String>) {
         .toSet()
 
 
+    fun part1(): Int {
+        var currentState = elves
+        var currentPlans = plans
+
+        repeat(10) {
+            currentState = step(currentState, currentPlans)
+            currentPlans = swapPlans(currentPlans)
+        }
+
+        val xMax = currentState.maxOf { point -> point.x }
+        val xMin = currentState.minOf { point -> point.x }
+        val yMax = currentState.maxOf { point -> point.y }
+        val yMin = currentState.minOf { point -> point.y }
+
+        val width = (xMax - xMin) + 1
+        val height = (yMax - yMin) + 1
+
+        return (width * height) - currentState.size
+    }
+
+    fun part2(): Int {
+        var currentState = elves
+        var currentPlans = plans
+
+        var lastState = currentState
+        var round = 1
+
+        while (true) {
+            currentState = step(currentState, currentPlans)
+            currentPlans = swapPlans(currentPlans)
+
+            if (currentState == lastState) {
+                return round
+            }
+
+            round++
+            lastState = currentState
+        }
+    }
+
     private fun step(state: Set<Point>, plans: List<List<Point>>) = executeMoves(planMoves(state, plans))
 
     private fun planMoves(state: Set<Point>, plans: List<List<Point>>) = state
@@ -41,50 +81,7 @@ class Day23(input: List<String>) {
         return newPositions.toSet()
     }
 
-
-    fun part1(): Int {
-        var state = elves
-        var plans = plans
-
-        repeat(10) {
-            state = step(state, plans)
-            plans = plans.drop(1) + listOf(plans.first())
-        }
-
-        val xMax = state.maxOf { point -> point.x }
-        val xMin = state.minOf { point -> point.x }
-        val yMax = state.maxOf { point -> point.y }
-        val yMin = state.minOf { point -> point.y }
-
-        val width = (xMax - xMin) + 1
-        val height = (yMax - yMin) + 1
-
-        return (width * height) - state.size
-    }
-
-    fun part2(): Int {
-        var state = elves
-        var plans = plans
-
-        var prevState: Set<Point>
-
-        var round = 1
-        while (true) {
-            prevState = state
-
-            state = step(state, plans)
-            plans = plans.drop(1) + listOf(plans.first())
-
-            if (state == prevState) {
-                break
-            }
-
-
-            round++
-        }
-
-        return round
-    }
+    fun swapPlans(plans: List<List<Point>>) = plans.drop(1) + listOf(plans.first())
 
 
     private val neighbours = (-1..1).flatMap { x -> (-1..1).map { y -> Point(x, y) } } - Point(0, 0)
