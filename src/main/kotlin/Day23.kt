@@ -43,17 +43,12 @@ class Day23(input: List<String>) {
     }
 
 
-    fun part1() {
+    fun part1() :Int {
         var state = elves
-
-        println(printPoints(state))
-        println()
 
         repeat(10) {
             state = step(state)
-
-            println(printPoints(state))
-            println()
+            
         }
 
         val xMax = state.maxOf { point -> point.x }
@@ -64,10 +59,10 @@ class Day23(input: List<String>) {
         val width = (xMax - xMin) + 1
         val height = (yMax - yMin) + 1
 
-        println((width * height) - state.size)
+        return (width * height) - state.size
     }
 
-    fun part2() {
+    fun part2() :Int {
         var state = elves
         var prevState: Set<Point>
 
@@ -80,29 +75,12 @@ class Day23(input: List<String>) {
                 break
             }
 
-            println(printPoints(state))
-            println(round)
-            
+
             round++
         }
 
-        println(round)
+        return round
     }
-
-
-    private fun printPoints(state: Set<Point>): String {
-        val xMax = availablePoints.maxOf { point -> point.x }
-        val xMin = availablePoints.minOf { point -> point.x }
-        val yMax = availablePoints.maxOf { point -> point.y }
-        val yMin = availablePoints.minOf { point -> point.y }
-
-        return (yMin..yMax).joinToString("\n") { y ->
-            (xMin..xMax).joinToString("") { x ->
-                if (Point(x, y) in state) "#" else "."
-            }
-        }
-    }
-
 
     val northCheck = listOf(Point(-1, -1), Point(0, -1), Point(1, -1))
     val southCheck = listOf(Point(-1, 1), Point(0, 1), Point(1, 1))
