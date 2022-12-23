@@ -1,54 +1,48 @@
 class Day23(input: List<String>) {
 
-    val board = input.flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
-        .toMap()
+    private val elves = input.flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
+        .filter { (_, symbol) -> symbol == '#' }
+        .map { (point, _) -> point }
+        .toSet()
 
-    val elves = board.filter { it.value == '#' }.keys
-    val availablePoints = board.keys
+    fun proposeMove(state: Set<Point>, plans: List<List<Point>>): List<Pair<Point, Point>> {
+        return state.map { position ->
+            val isNotAlone = neighbours
+                .map { neighbour -> neighbour + position }
+                .any { neighbour -> neighbour in state }
 
-    fun step(state: Set<Point>): Set<Point> {
-        val proposedState = mutableSetOf<Pair<Point, Point>>()
-        val nextState = mutableSetOf<Point>()
+            val nextPlan = plans
+                .map { plan -> plan.map { direction -> direction + position } }
+                .firstOrNull { plan -> plan.all { point -> point !in state } }
 
-
-        state.forEach { elf ->
-            val anyElfNear = allNeighbours.map { it + elf }.any { it in state }
-
-            if (anyElfNear) {
-                val check =
-                    adjustedChecks.firstOrNull { check -> check.map { it + elf }.all { cond -> cond !in state } }
-                if (check != null) {
-                    proposedState.add(elf to (elf + check[1]))
-                } else {
-                    proposedState.add(elf to elf)
-                }
+            if (isNotAlone && nextPlan != null) {
+                position to nextPlan[1]
             } else {
-                proposedState.add(elf to elf)
+                position to position
             }
         }
-
-
-        proposedState.forEach { (elf, newPos) ->
-            val count = proposedState.count { newPos == it.second }
-            if (count == 1) {
-                nextState += newPos
-            } else {
-                nextState += elf
-            }
-        }
-
-        adjustedChecks = adjustedChecks.drop(1) + listOf(adjustedChecks.first())
-
-        return nextState
     }
 
+    fun executeMove(plannedPositions: List<Pair<Point, Point>>) = plannedPositions
+        .map { (position, nextPosition) ->
+            when (plannedPositions.count { (_, otherPosition) -> nextPosition == otherPosition }) {
+                1 -> nextPosition
+                else -> position
+            }
+        }.toSet()
 
-    fun part1() :Int {
+    fun step(state: Set<Point>, plans: List<List<Point>>): Set<Point> {
+        val plannedMoves = proposeMove(state, plans)
+        return executeMove(plannedMoves)
+    }
+
+    fun part1(): Int {
         var state = elves
+        var plans = plans
 
         repeat(10) {
-            state = step(state)
-            
+            state = step(state, plans)
+            plans = plans.drop(1) + listOf(plans.first())
         }
 
         val xMax = state.maxOf { point -> point.x }
@@ -62,16 +56,20 @@ class Day23(input: List<String>) {
         return (width * height) - state.size
     }
 
-    fun part2() :Int {
+    fun part2(): Int {
         var state = elves
+        var plans = plans
+
         var prevState: Set<Point>
 
         var round = 1
         while (true) {
             prevState = state
-            state = step(state)
-            
-            if(state == prevState) {
+
+            state = step(state, plans)
+            plans = plans.drop(1) + listOf(plans.first())
+
+            if (state == prevState) {
                 break
             }
 
@@ -82,31 +80,17 @@ class Day23(input: List<String>) {
         return round
     }
 
-    val northCheck = listOf(Point(-1, -1), Point(0, -1), Point(1, -1))
-    val southCheck = listOf(Point(-1, 1), Point(0, 1), Point(1, 1))
-    val westCheck = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1))
-    val eastCheck = listOf(Point(1, -1), Point(1, 0), Point(1, 1))
 
-    val checks = listOf(northCheck, southCheck, westCheck, eastCheck)
-    var adjustedChecks = checks
+    private val neighbours = (-1..1).flatMap { x -> (-1..1).map { y -> Point(x, y) } } - Point(0, 0)
 
-    val allNeighbours = listOf(
-        Point(-1, -1), Point(-1, 0), Point(-1, 1),
-        Point(0, -1), Point(0, 1),
-        Point(1, -1), Point(1, 0), Point(1, 1),
+    private val plans = listOf(
+        listOf(Point(-1, -1), Point(0, -1), Point(1, -1)),
+        listOf(Point(-1, 1), Point(0, 1), Point(1, 1)),
+        listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1)),
+        listOf(Point(1, -1), Point(1, 0), Point(1, 1)),
     )
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-
-    val input = readLines("day23.txt")
-//    val input = readLines("day23.txt", true)
-
-    val result = Day23(input).part2()
-    println(result)
-
 }
