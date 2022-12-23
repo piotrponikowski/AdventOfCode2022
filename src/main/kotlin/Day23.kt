@@ -5,8 +5,8 @@ class Day23(input: List<String>) {
         .map { (point, _) -> point }
         .toSet()
 
-    fun proposeMove(state: Set<Point>, plans: List<List<Point>>): List<Pair<Point, Point>> {
-        return state.map { position ->
+    private fun planMoves(state: Set<Point>, plans: List<List<Point>>) = state
+        .map { position ->
             val isNotAlone = neighbours
                 .map { neighbour -> neighbour + position }
                 .any { neighbour -> neighbour in state }
@@ -21,9 +21,9 @@ class Day23(input: List<String>) {
                 position to position
             }
         }
-    }
 
-    fun executeMove(plannedPositions: List<Pair<Point, Point>>) = plannedPositions
+
+    private fun executeMoves(plannedPositions: List<Pair<Point, Point>>) = plannedPositions
         .map { (position, nextPosition) ->
             when (plannedPositions.count { (_, otherPosition) -> nextPosition == otherPosition }) {
                 1 -> nextPosition
@@ -31,10 +31,7 @@ class Day23(input: List<String>) {
             }
         }.toSet()
 
-    fun step(state: Set<Point>, plans: List<List<Point>>): Set<Point> {
-        val plannedMoves = proposeMove(state, plans)
-        return executeMove(plannedMoves)
-    }
+    private fun step(state: Set<Point>, plans: List<List<Point>>) = executeMoves(planMoves(state, plans))
 
     fun part1(): Int {
         var state = elves
