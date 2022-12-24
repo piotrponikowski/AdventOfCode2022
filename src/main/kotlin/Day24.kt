@@ -101,7 +101,43 @@ class Day24(input: List<String>) {
         }
     }
 
-    fun part2() = 2
+    fun part2(): Int {
+        val start = board.filter { (point, symbol) -> point.y == yMin && symbol == '.' }.keys.first()
+        val end = board.filter { (point, symbol) -> point.y == yMax && symbol == '.' }.keys.first()
+
+        var currentBlizzards = blizzards
+        var currentPositions = setOf(start)
+
+        println(printPoints(currentBlizzards))
+        println()
+
+        var round = 1
+        var trip = 1
+        while (true) {
+            currentBlizzards = moveBlizzards(currentBlizzards)
+            currentPositions = movePositions(currentPositions, currentBlizzards)
+
+//            println(printPoints(currentBlizzards))
+//            println(currentPositions)
+            println(currentPositions.size)
+
+            if (trip == 1 && end in currentPositions) {
+                trip = 2
+                currentPositions = setOf(end)
+            }
+
+            if (trip == 2 && start in currentPositions) {
+                trip = 3
+                currentPositions = setOf(start)
+            }
+
+            if (trip == 3 && end in currentPositions) {
+                return round
+            }
+
+            round++
+        }
+    }
 
     private fun printPoints(state: List<Blizzard>): String {
         return (yMin..yMax).joinToString("\n") { y ->
@@ -146,7 +182,7 @@ fun main() {
     val input = readLines("day24.txt")
 //    val input = readLines("day24.txt", true)
 
-    val result = Day24(input).part1()
+    val result = Day24(input).part2()
     println(result)
 
 }
