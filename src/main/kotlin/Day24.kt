@@ -81,17 +81,10 @@ class Day24(input: List<String>) {
         var currentBlizzards = blizzards
         var currentPositions = setOf(start)
 
-        println(printPoints(currentBlizzards))
-        println()
-
         var round = 1
         while (true) {
             currentBlizzards = moveBlizzards(currentBlizzards)
             currentPositions = movePositions(currentPositions, currentBlizzards)
-
-//            println(printPoints(currentBlizzards))
-//            println(currentPositions)
-            println(currentPositions.size)
 
             if (end in currentPositions) {
                 return round
@@ -108,18 +101,11 @@ class Day24(input: List<String>) {
         var currentBlizzards = blizzards
         var currentPositions = setOf(start)
 
-        println(printPoints(currentBlizzards))
-        println()
-
         var round = 1
         var trip = 1
         while (true) {
             currentBlizzards = moveBlizzards(currentBlizzards)
             currentPositions = movePositions(currentPositions, currentBlizzards)
-
-//            println(printPoints(currentBlizzards))
-//            println(currentPositions)
-            println(currentPositions.size)
 
             if (trip == 1 && end in currentPositions) {
                 trip = 2
@@ -138,29 +124,6 @@ class Day24(input: List<String>) {
             round++
         }
     }
-
-    private fun printPoints(state: List<Blizzard>): String {
-        return (yMin..yMax).joinToString("\n") { y ->
-            (xMin..xMax).joinToString("") { x ->
-                if (x == xMin || x == xMax || y == yMin || y == yMax) {
-                    '#'.toString()
-                } else {
-                    val position = Point(x, y)
-                    val bs = state.filter { b -> b.position == position }
-
-                    if (bs.isEmpty()) {
-                        "."
-                    } else if (bs.size == 1) {
-                        bs[0].symbol.toString()
-                    } else {
-                        bs.size.toString()
-                    }
-                }
-
-            }
-        }
-    }
-
 
     private val right = Point(1, 0)
     private val left = Point(-1, 0)
