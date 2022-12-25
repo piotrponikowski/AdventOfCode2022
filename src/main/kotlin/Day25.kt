@@ -2,10 +2,12 @@ import kotlin.math.pow
 
 class Day25(val input: List<String>) {
     
-    private fun fromSnafu(input: String) = input
-        .reversed()
-        .mapIndexed { index, digit -> 5.0.pow(index).toLong() * decode(digit) }
-        .sum()
+    private fun fromSnafu(input: String, index: Int = 0):Long  {
+        return when(input.isNotEmpty()) {
+            true -> fromSnafu(input.dropLast(1), index + 1) + (5.0.pow(index).toLong() * decode(input.last()))
+            false -> 0
+        }
+    }
 
     private fun toSnafu(input: Long): String {
         return when (input > 0) {
