@@ -13,6 +13,8 @@ class Day24(input: List<String>) {
     private val yMax = board.keys.maxOf { point -> point.y }
     private val yMin = board.keys.minOf { point -> point.y }
 
+    private val start = board.filter { (point, symbol) -> point.y == yMin && symbol == '.' }.keys.first()
+    private val end = board.filter { (point, symbol) -> point.y == yMax && symbol == '.' }.keys.first()
 
     private fun moveBlizzards(blizzards: List<Blizzard>) = blizzards.map { (position, symbol) ->
 
@@ -48,11 +50,7 @@ class Day24(input: List<String>) {
         return newPositions.toSet()
     }
 
-
     fun part1(): Int {
-        val start = board.filter { (point, symbol) -> point.y == yMin && symbol == '.' }.keys.first()
-        val end = board.filter { (point, symbol) -> point.y == yMax && symbol == '.' }.keys.first()
-
         var currentBlizzards = blizzards
         var currentPositions = setOf(start)
 
@@ -70,9 +68,6 @@ class Day24(input: List<String>) {
     }
 
     fun part2(): Int {
-        val start = board.filter { (point, symbol) -> point.y == yMin && symbol == '.' }.keys.first()
-        val end = board.filter { (point, symbol) -> point.y == yMax && symbol == '.' }.keys.first()
-
         var currentBlizzards = blizzards
         var currentPositions = setOf(start)
 
@@ -82,31 +77,25 @@ class Day24(input: List<String>) {
             currentBlizzards = moveBlizzards(currentBlizzards)
             currentPositions = movePositions(currentPositions, currentBlizzards)
 
-            if (trip == 1 && end in currentPositions) {
-                trip = 2
-                currentPositions = setOf(end)
-            }
-
-            if (trip == 2 && start in currentPositions) {
-                trip = 3
-                currentPositions = setOf(start)
-            }
-
-            if (trip == 3 && end in currentPositions) {
-                return round
+            when {
+                trip == 1 && end in currentPositions -> {
+                    trip = 2
+                    currentPositions = setOf(end)
+                }
+                trip == 2 && start in currentPositions -> {
+                    trip = 3
+                    currentPositions = setOf(start)
+                }
+                trip == 3 && end in currentPositions -> {
+                    return round
+                }
             }
 
             round++
         }
     }
 
-    private val right = Point(1, 0)
-    private val left = Point(-1, 0)
-    private val down = Point(0, 1)
-    private val up = Point(0, -1)
-    private val wait = Point(0, 0)
-
-    private val directions = listOf(right, left, down, up, wait)
+    private val directions = listOf(Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1), Point(0, 0))
 
     data class Blizzard(val position: Point, val symbol: Char)
 
