@@ -18,42 +18,25 @@ class Day24(input: List<String>) {
 
     }
 
-    fun moveBlizzards(blizzards: List<Blizzard>): List<Blizzard> {
+    private fun moveBlizzards(blizzards: List<Blizzard>) = blizzards.map { (position, symbol) ->
 
-        return blizzards.map { (point, symbol) ->
-
-            if (symbol == '>') {
-                val newPoint = point + right
-                if (newPoint.x == xMax) {
-                    Blizzard(Point(xMin + 1, point.y), symbol)
-                } else {
-                    Blizzard(newPoint, symbol)
-                }
-            } else if (symbol == '<') {
-                val newPoint = point + left
-                if (newPoint.x == xMin) {
-                    Blizzard(Point(xMax - 1, point.y), symbol)
-                } else {
-                    Blizzard(newPoint, symbol)
-                }
-            } else if (symbol == 'v') {
-                val newPoint = point + down
-                if (newPoint.y == yMax) {
-                    Blizzard(Point(point.x, yMin + 1), symbol)
-                } else {
-                    Blizzard(newPoint, symbol)
-                }
-            } else if (symbol == '^') {
-                val newPoint = point + up
-                if (newPoint.y == yMin) {
-                    Blizzard(Point(point.x, yMax - 1), symbol)
-                } else {
-                    Blizzard(newPoint, symbol)
-                }
-            } else {
-                Blizzard(point, symbol)
-            }
+        val newPosition = when (symbol) {
+            '<' -> Point(position.x - 1, position.y)
+            '>' -> Point(position.x + 1, position.y)
+            '^' -> Point(position.x, position.y - 1)
+            'v' -> Point(position.x, position.y + 1)
+            else -> throw RuntimeException("Unknown blizzard")
         }
+
+        val wrappedPosition = when {
+            newPosition.x == xMin -> Point(xMax - 1, newPosition.y)
+            newPosition.x == xMax -> Point(xMin + 1, newPosition.y)
+            newPosition.y == yMin -> Point(newPosition.x, yMax - 1)
+            newPosition.y == yMax -> Point(newPosition.x, yMin + 1)
+            else -> newPosition
+        }
+
+        Blizzard(wrappedPosition, symbol)
     }
 
     fun movePositions(positions: Set<Point>, blizzards: List<Blizzard>): Set<Point> {
@@ -63,7 +46,7 @@ class Day24(input: List<String>) {
 
                 val isBlizzard = blizzards.any { blizzard -> blizzard.position == nextPosition }
 
-                if (isBlizzard || board[nextPosition] == null || board[nextPosition] == '#' ) {
+                if (isBlizzard || board[nextPosition] == null || board[nextPosition] == '#') {
                     null
                 } else {
                     nextPosition
