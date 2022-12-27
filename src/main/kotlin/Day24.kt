@@ -13,10 +13,6 @@ class Day24(input: List<String>) {
     private val yMax = board.keys.maxOf { point -> point.y }
     private val yMin = board.keys.minOf { point -> point.y }
 
-    fun step() {
-
-
-    }
 
     private fun moveBlizzards(blizzards: List<Blizzard>) = blizzards.map { (position, symbol) ->
 
@@ -39,21 +35,17 @@ class Day24(input: List<String>) {
         Blizzard(wrappedPosition, symbol)
     }
 
-    fun movePositions(positions: Set<Point>, blizzards: List<Blizzard>): Set<Point> {
-        return positions.flatMap { position ->
-            directions.mapNotNull { direction ->
-                val nextPosition = direction + position
+    private fun movePositions(positions: Set<Point>, blizzards: List<Blizzard>): Set<Point> {
+        val blizzardPositions = blizzards.map { blizzard -> blizzard.position }.toSet()
 
-                val isBlizzard = blizzards.any { blizzard -> blizzard.position == nextPosition }
+        val newPositions = positions.flatMap { position ->
+            directions
+                .map { direction -> direction + position }
+                .filter { newPosition -> newPosition !in blizzardPositions }
+                .filter { newPosition -> (board[newPosition] ?: '#') != '#' }
+        }
 
-                if (isBlizzard || board[nextPosition] == null || board[nextPosition] == '#') {
-                    null
-                } else {
-                    nextPosition
-                }
-            }
-
-        }.toSet()
+        return newPositions.toSet()
     }
 
 
@@ -121,14 +113,4 @@ class Day24(input: List<String>) {
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-
-    val input = readLines("day24.txt")
-//    val input = readLines("day24.txt", true)
-
-    val result = Day24(input).part2()
-    println(result)
-
 }
